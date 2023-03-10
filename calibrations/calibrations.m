@@ -1,10 +1,10 @@
 %% Load Data
 clear
 clc
-load('data/2_03_23.mat')
+load('data/10_03_23.mat')
 %% ADC -> Beam Angle
 
-[p1, p2] = fitData(data.BeamAngleADC, data.BeamAngleRads);
+[p1, p2,mdl] = fitData(data.BeamAngleADC, data.BeamAngleRads);
 fprintf("ADC -> Beam Angle (Rads): Beam Angle = %f * ADC + %f \r\n", p2, p1);
 
 [p1, p2] = fitData(data.BeamAngleADC, data.BeamAngleDegrees);
