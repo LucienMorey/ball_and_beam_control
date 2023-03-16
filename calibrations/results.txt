@@ -7,4 +7,4 @@ Beam Angle Signal -> Beam Angle (Degs): Beam Angle = 1.000000 * Signal + -0.0000
 ADC -> Ball Position (Meters): Beam Position = 0.397018 * ADC + -201.077739 
 Ball Position Signal -> Ball Position (Meters): Ball Position = 16.838518 * Signal + 2.763498 
 
-Drive Voltage -> ADC (12 Bit): ADC = (Drive Voltage - -12.132986) / 0.006148 
+Drive Voltage -> ADC (12 Bit): ADC = (Drive Voltage + 12.132986) / 0.006148 
