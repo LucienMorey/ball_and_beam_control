@@ -15,10 +15,10 @@ fprintf("ADC -> Beam Angle (Degs): Beam Angle = %f * ADC + %f \r\n", p2, p1);
 
 %% BeamAngleSignal -> Beam Angle
 
-[p1, p2] = fitData(data.BeamAngleSignal, data.BeamAngleDegrees);
+[p1, p2] = fitData(data.BeamAngleSignal, data.BeamAngleRads);
 fprintf("Beam Angle Signal -> Beam Angle (Rads): Beam Angle = %f * Signal + %f \r\n", p2, p1);
 
-[p1, p2] = fitData(data.BeamAngleDegrees, data.BeamAngleDegrees);
+[p1, p2] = fitData(data.BeamAngleSignal, data.BeamAngleDegrees);
 fprintf("Beam Angle Signal -> Beam Angle (Degs): Beam Angle = %f * Signal + %f \r\n", p2, p1);
 
 %% ADC -> Ball Position
