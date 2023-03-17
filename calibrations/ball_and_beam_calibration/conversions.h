@@ -3,21 +3,21 @@
 
 // Beam Angle Conversions
 float adcToBeamAngleRads(int adc){
-    return (0.000462 * adc) - 0.213671;
+    return (0.000391 * adc) -0.207106;
 }
 
 float adcToBeamAngleDegrees(int adc){
-    return (0.026443 * adc) - 12.242443;
+    return (0.023211 * adc) -11.159444;
 }
 
 // Ball Positin Conversion
 float adcToBallPosition(int adc){
-    return (-0.003895 * adc) + 1.966694;
+    return (0.397018 * adc) -201.077739;
 }
 
 // Drive Voltage Conversion
 uint16_t driveVoltageToDAC(float voltage){
-    return (voltage + 12.132986) / 0.006148;
+    return (voltage +12) / 0.006148;
 }
 
 #endif
