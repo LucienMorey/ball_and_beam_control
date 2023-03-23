@@ -39,9 +39,9 @@ Dc = 0;
 c_sys=ss(Ac,Bc,Cc,Dc);
 %% Controllability
 disp('Controllability Matrix')
-CM=[Ac*Bc Bc];
+CM= ctrb(Ac,Bc);
 disp(' ')
-if (rank(CM)==size(Ac, 1))
+if (rank(CM)==size(CM,1))
     disp('System is controllable')
 else 
     disp('System is NOT controllable')
