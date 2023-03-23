@@ -7,10 +7,10 @@ clear
 %% Simulation Config
 Tsim=10;
 %Total simulation time
-fs = 200;
+fs = 1000;
 Ts = 1/fs;
 % if obs = 1 then the kalman filter will be used for control calculations
-OBS = 0;
+OBS = 1;
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
@@ -23,15 +23,16 @@ b = 747.4732; % TODO FIND THIS
 
 position_noise = 0.1;
 angle_noise = 0.1;
+voltage_noise =1e-6;
   
-p_0 = 0.1; %m
+p_0 = 1.0; %m
 p_dot_0 = 0.0; %m/s
 theta_0 = 0.0; %rad
 theta_dot_0 = 0.0; %rad/s
 
-p_hat_0 = 0.1; %m
+p_hat_0 = 0.8; %m
 p_dot_hat_0 = 0.0; %m/s
-theta_hat_0 = 0.0; %rad
+theta_hat_0 = 0* pi/180; %rad
 theta_dot_hat_0 = 0.0; %rad/s
 %% Continuous-time Model 
 % = [p p_dot theta theta_dot]'
@@ -95,6 +96,6 @@ K = place(A,B,poles_discrete);
 K = place(Ac,Bc, poles);
 
 %% Observer
-Q = diag([1e-5,1e-5,1e-5,1e-5]);
-R = diag([position_noise, angle_noise]);
+Q = 1e-10* eye(4);
+R = diag([position_noise^2, angle_noise^2]);
 P_0 = 0*eye(4,4);
