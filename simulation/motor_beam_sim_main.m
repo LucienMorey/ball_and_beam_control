@@ -75,8 +75,8 @@ disp('y(k)=Cx(k)')
 
 A=d_sys.A
 B=d_sys.B
-C=Cc
-D = 0
+C=d_sys.C
+D=d_sys.D;
 disp(' ')
 %% State Feedback
 %modify these to be less than the unit circle if we want to use the
