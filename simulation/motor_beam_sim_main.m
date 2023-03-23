@@ -7,7 +7,7 @@ clear
 %% Simulation Config
 Tsim=10;
 %Total simulation time
-fs = 20000;
+fs = 200;
 Ts = 1/fs;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 0;
