@@ -35,3 +35,6 @@
 *.asv
 slprj/
 *.slxc
+
+# vscode
+.vscode/
