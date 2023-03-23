@@ -32,7 +32,8 @@ Ac = [0, 1, 0, 0;
       0, 0, 0 1;
       0, 0, 0 a];
 Bc = [0 0 0 b]';
-Cc = [1 0 0 0];
+Cc = [1 0 0 0;
+      0 0 1 0];
 Dc = 0;
 %Continuos-time model in a compact form
 c_sys=ss(Ac,Bc,Cc,Dc);
