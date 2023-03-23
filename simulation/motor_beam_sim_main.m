@@ -9,6 +9,8 @@ Tsim=10;
 %Total simulation time
 fs = 20000;
 Ts = 1/fs;
+% if obs = 1 then the kalman filter will be used for control calculations
+OBS = 0;
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
@@ -18,13 +20,19 @@ g = 9.81; %m/s^2
 J_b = 2/5*m*r^2; %kg*m^2
 a = -13.3794; % TODO FIND THIS
 b = 747.4732; % TODO FIND THIS
-position_noise = 0.0;
-angle_noise = 0.0;
+
+position_noise = 0.1;
+angle_noise = 0.1;
   
 p_0 = 0.1; %m
 p_dot_0 = 0.0; %m/s
 theta_0 = 0.0; %rad
 theta_dot_0 = 0.0; %rad/s
+
+p_hat_0 = 0.1; %m
+p_dot_hat_0 = 0.0; %m/s
+theta_hat_0 = 0.0; %rad
+theta_dot_hat_0 = 0.0; %rad/s
 %% Continuous-time Model 
 % = [p p_dot theta theta_dot]'
 Ac = [0, 1, 0, 0;
@@ -81,9 +89,12 @@ disp(' ')
 %% State Feedback
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system 
-poles = [0.5 0.4 0.3 0.2]';
-K = place(A,B,poles);
-eigs(A-B*K)
-
+poles = [-0.7547 + 1.2059i, -0.7547 - 1.2059i, -10, -11]';
+poles_discrete = exp(poles*Ts);
+K = place(A,B,poles_discrete);
+K = place(Ac,Bc, poles);
 
 %% Observer
+Q = diag([1e-5,1e-5,1e-5,1e-5]);
+R = diag([position_noise, angle_noise]);
+P_0 = 0*eye(4,4);
