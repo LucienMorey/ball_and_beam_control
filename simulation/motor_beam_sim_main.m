@@ -47,6 +47,15 @@ else
     disp('System is NOT controllable')
 end
 disp(' ')
+%% Observability
+disp('Observability Matrix')
+OM=obsv(Ac,Cc);
+if (rank(OM)==size(OM,2))
+    disp('System is observable')
+else 
+    disp('System is NOT observable')
+end
+disp(' ')
 %% Equilibrium Point
 % Ac is non-sigular
 %disp('--------------------------------')
