@@ -90,6 +90,32 @@ float out4 = 0; // Board Output 4 (+/-12V)
     Default resolution if not used is 10bits.
 const int res = 12;
 
+// Continuous State Space matrices
+BLA::Matrix<4,4> Ac;
+BLA::Matrix<1,4> Bc;
+BLA::Matrix<2,4> Cc;
+BLA::Matrix<1,1> Dc;
+
+// Discrete State Space matrices
+BLA::Matrix<4,4> A;
+BLA::Matrix<1,4> B;
+BLA::Matrix<2,4> C;
+BLA::Matrix<1,1> D;
+
+// System Paramaters
+const double length = 0.91; // m
+const double height = 0.32; // M
+const double m = 0.03299; // kg
+const double r = 0.01; // m
+const double g = 9.81; // m/s^2
+const double J_b = 2.0/5.0*m*pow(r,2.0); // kg*m^2
+const double a = -13.3794; // TODO FIND THIS
+const double b = 747.4732; // TODO FIND THIS
+
+const double position_noise = 0.1;
+const double angle_noise = 0.1;
+const double voltage_noise =1e-6;
+
 //___________________________________________________________________________
 //
 //                                  setup
@@ -112,6 +138,30 @@ void setup()
     b1 = 0;
     b2 = 0;
     b3 = 0;
+
+    // Set up continuous time matrices
+  Ac = {0.0, 1.0, 0.0,                           0.0,
+        0.0, 0.0, -(m*g)/((J_b/pow(r,2.0))+m),   0.0,
+        0.0, 0.0, 0.0,                           1.0,
+        0.0, 0.0, 0.0,                           a    
+      };
+
+  Bc = {0.0, 0.0, 0.0, b};
+
+  Cc = {1.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0};
+
+  Dc = {0.0};
+
+  // Discretise continuous time matrices
+  BLA::Matrix<4,4> eye_4 = {1.0, 0.0, 0.0, 0.0,
+                            0.0, 1.0, 0.0, 0.0,
+                            0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0}; 
+  A = eye_4 - Ac * Ts;
+  B = Bc * Ts;
+  C = Cc;
+  D = Dc;
     
     //Initialize I/O pins to measure execution time
     pinMode(LED_BUILTIN,OUTPUT);
