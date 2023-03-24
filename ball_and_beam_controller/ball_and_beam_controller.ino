@@ -24,6 +24,9 @@ IntervalTimer myTimer;
 #include <BasicLinearAlgebra.h>
 #include <ElementStorage.h>
 
+#include "kalman_filter.hpp"
+#include "state_feedback_controller.hpp"
+
 #define fs 200 // Sampling frequency [Hz] , Ts = 1/fs [s]
 
 // Input Pins
@@ -39,32 +42,6 @@ IntervalTimer myTimer;
 #define OUT2 7 // Output 2 Pin
 #define OUT3 4 // Output 3 Pin
 #define OUT4 5 // Output 4 Pin
-
-// Control Effort
-float u_k;  // u[k]
-float u_k1; // u[k-1]
-
-// Plant Outputs
-float y1_k;  // y1[k]
-float y1_k1; // y1[k-1]
-
-float y2_k;  // y2[k]
-float y2_k1; // y1[k-1]
-
-// Control Error
-float e_k;  // e[k]
-float e_k1; // e[k-1]
-
-// Controller Variables
-float a1;
-float a2;
-float a3;
-float b1;
-float b2;
-float b3;
-
-float z_k;  // z[k]
-float z_k1; // z[k-2]
 
 // uC Inputs
 float in1 = 0; // Board Input 1 (0->12V)
@@ -90,15 +67,27 @@ const int res = 12;
 
 // Continuous State Space matrices
 BLA::Matrix<4, 4> Ac;
-BLA::Matrix<1, 4> Bc;
+BLA::Matrix<4, 1> Bc;
 BLA::Matrix<2, 4> Cc;
 BLA::Matrix<1, 1> Dc;
 
 // Discrete State Space matrices
 BLA::Matrix<4, 4> A;
-BLA::Matrix<1, 4> B;
+BLA::Matrix<4, 1> B;
 BLA::Matrix<2, 4> C;
 BLA::Matrix<1, 1> D;
+
+BLA::Matrix<2, 1> z_k;
+BLA::Matrix<4, 1> x_hat_k;
+BLA::Matrix<4, 4> P_k;
+
+BLA::Matrix<4, 1> x_ref;
+double u_ref;
+
+BLA::Matrix<4, 4> kalman_Q;
+BLA::Matrix<2, 2> kalman_R;
+
+BLA::Matrix<1, 4> K_SFC;
 
 // System Paramaters
 const double length = 0.91;                     // m
@@ -114,6 +103,11 @@ const double position_noise = 0.1;
 const double angle_noise = 0.1;
 const double voltage_noise = 1e-6;
 
+// Controller and Observer class instances
+
+KalmanFilter *kalman_filter;
+StateFeedbackController *state_feedback_controller;
+
 //___________________________________________________________________________
 //
 //                                  setup
@@ -128,14 +122,6 @@ void setup()
 
   // Sampling Time Ts=1/fs [s]
   float Ts = 1 / float(fs); // in seconds
-
-  // Initialize controller variables
-  a1 = 0;
-  a2 = 0;
-  a3 = 0;
-  b1 = 0;
-  b2 = 0;
-  b3 = 0;
 
   // Set up continuous time matrices
   Ac = {0.0, 1.0, 0.0, 0.0,
@@ -159,6 +145,18 @@ void setup()
   B = Bc * Ts;
   C = Cc;
   D = Dc;
+
+  K_SFC = {-0.0425, -0.0398, 0.1923, 0.0122};
+
+  kalman_Q = eye_4 * 1e5;
+  kalman_R = {pow(position_noise, 2.0), 0,
+              0, pow(angle_noise, 2.0)};
+
+  x_hat_k = {0.0, 0.0, 0.0, 0.0};
+  P_k = eye_4;
+
+  kalman_filter = new KalmanFilter(A, B, C, kalman_Q, kalman_R, x_hat_k, P_k);
+  state_feedback_controller = new StateFeedbackController(K_SFC);
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
@@ -216,7 +214,7 @@ void Controller(void)
   in3 = read_input3(0); // -12v -> 12v
   in4 = read_input4(0); // -12v -> 12v
 
-  disp_inputs_all(); // Displays all inputs
+  // disp_inputs_all(); // Displays all inputs
 
   // Only display inputs for calibration.
   // Do not display them when running the controller
@@ -226,19 +224,16 @@ void Controller(void)
   /* EXAMPLE - YOU MUST CHANGE */
 
   // Output Measurement
-  y1_k = in1;
-  y2_k = in2;
+  z_k = {in1,
+         in2};
 
   // Control Algorithim
+  double u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
 
-  u_k = a1 * y1_k - b2 * y2_k1;
+  x_hat_k = kalman_filter->filter(u_k, z_k);
 
   // Map Contol Effort to output
-
   out1 = u_k;
-
-  // Store variables for next iteration
-  y1_k1 = y1_k;
 
   /*
   Board Outputs
