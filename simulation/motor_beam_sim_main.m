@@ -7,7 +7,7 @@ clear
 %% Simulation Config
 Tsim=10;
 %Total simulation time
-fs = 1000;
+fs = 200;
 Ts = 1/fs;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 1;
@@ -38,8 +38,8 @@ theta_dot_hat_0 = 0.0; %rad/s
 % = [p p_dot theta theta_dot]'
 Ac = [0, 1, 0, 0;
       0, 0, -(m*g)/((J_b/(r^2))+m), 0;
-      0, 0, 0 1;
-      0, 0, 0 a];
+      0, 0, 0, 1;
+      0, 0, 0, a];
 Bc = [0 0 0 b]';
 Cc = [1 0 0 0;
       0 0 1 0];
@@ -89,11 +89,22 @@ D=d_sys.D;
 disp(' ')
 %% State Feedback
 %modify these to be less than the unit circle if we want to use the
-%dsicrete time system 
-poles = [-0.7547 + 1.2059i, -0.7547 - 1.2059i, -10, -11]';
-poles_discrete = exp(poles*Ts);
-K = place(A,B,poles_discrete);
-K = place(Ac,Bc, poles);
+%dsicrete time system
+overshoot = 0.14;
+settling_time = 5.3;
+
+zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2))
+
+w_n = 4/(settling_time*zeta)
+
+p1 = -zeta*w_n + w_n*sqrt(1-zeta^2)*1i;
+p2 = -zeta*w_n - w_n*sqrt(1-zeta^2)*1i;
+
+p_cont = [p1; p2; -3; -3.1];
+
+p_discrete = exp(p_cont * Ts)
+K = place(A,B,p_discrete);
+%K = place(Ac,Bc, p_cont);
 
 %% Observer
 Q = 1e-10* eye(4);
