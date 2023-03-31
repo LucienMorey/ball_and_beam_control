@@ -9,7 +9,7 @@ inputVoltage = data.Var2;
 beamAngle = data.Var3;
 plot(beamAngle)
 %%
-beamAngle_rads =  0.0171* beamAngle + 0.0120; % Beam Angle = 0.0171* Signal + 0.0120
+beamAngle_rads =  0.018152* beamAngle + 0.012149 ; % Beam Angle = 0.018152 * Signal + 0.012149 
 
 first_bit = beamAngle_rads(1:100);
 
