@@ -209,7 +209,7 @@ void Controller(void)
   // The code inside this section will be run at every Ts
   // Start measuring execution time
   digitalWrite(A3, HIGH);
-
+  analogWrite(OUT3, 0);
   /*
   Board Inputs
   */
@@ -249,7 +249,7 @@ void Controller(void)
   analogWrite(OUT4, out4);
 
   // Stop measuring calculation time
-  digitalWrite(A3, LOW);
+  analogWrite(OUT3, 4000);
 }
 
 //___________________________________________________________________________
