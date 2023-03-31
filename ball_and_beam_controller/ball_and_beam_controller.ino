@@ -28,7 +28,7 @@
 #include "conversions.h"
 #include "controller_state.h"
 
-#define fs 1000                 // Sampling frequency [Hz] , Ts = 1/fs [s]
+#define fs 100                  // Sampling frequency [Hz] , Ts = 1/fs [s]
 float Ts = 1 / float(fs);       // Sampling Time Ts=1/fs [s] in seconds
 int Ts_m = (int)(Ts * 1000000); // Must multiply Ts by 1000000!
 
