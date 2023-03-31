@@ -1,8 +1,8 @@
-ADC -> Beam Angle (Rads): Beam Angle = 0.000391 * ADC + -0.207106 
-ADC -> Beam Angle (Degs): Beam Angle = 0.023211 * ADC + -11.159444
+ADC -> Beam Angle (Rads): Beam Angle = 0.000430 * ADC + -0.203152 
+ADC -> Beam Angle (Degs): Beam Angle = 0.024660 * ADC + -11.639728 
 
-Beam Angle Signal -> Beam Angle (Rads): Beam Angle = 0.017453 * Signal + 0.000000 
-Beam Angle Signal -> Beam Angle (Degs): Beam Angle = 0.986902 * Signal + 1.078404 
+Beam Angle Signal -> Beam Angle (Rads): Beam Angle = 0.018152 * Signal + 0.012149 
+Beam Angle Signal -> Beam Angle (Degs): Beam Angle = 1.040051 * Signal + 0.696110 
 
 ADC -> Ball Position (Meters): Beam Position = 0.397018 * ADC + -201.077739 
 Ball Position Signal -> Ball Position (Meters): Ball Position = 16.838518 * Signal + 2.763498 
