@@ -89,16 +89,17 @@ const double g = 9.81;                          // m/s^2
 const double J_b = 2.0 / 5.0 * m * pow(r, 2.0); // kg*m^2
 // const double a = -13.3794;                      // TODO FIND THIS
 // const double b = 747.4732;                      // TODO FIND THIS
-const double a = ;
-const double b = 0.002;
+const double k_theta = 0.0; // TODO FIND THIS
+const double k_theta_dot = -109.9; //% TODO FIND THIS
+const double k_v = 27.8;
 
 // Continuous State Space matrices
 BLA::Matrix<4, 4> Ac = {0.0, 1.0, 0.0, 0.0,
                         0.0, 0.0, -(m *g) / ((J_b / pow(r, 2.0)) + m), 0.0,
                         0.0, 0.0, 0.0, 1.0,
-                        a, 0.0, 0.0, 0};
+                        0.0, 0.0, k_theta, k_theta_dot};
 
-BLA::Matrix<4, 1> Bc = {0.0, 0.0, 0.0, b};
+BLA::Matrix<4, 1> Bc = {0.0, 0.0, 0.0, k_v};
 BLA::Matrix<2, 4> Cc = {1.0, 0.0, 0.0, 0.0,
                         0.0, 0.0, 1.0, 0.0};
 BLA::Matrix<1, 1> Dc = {0.0};
