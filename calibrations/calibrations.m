@@ -1,7 +1,7 @@
 %% Load Data
 clear
 clc
-load('data/10_03_23.mat')
+load('data/24_03_23.mat')
 %% ADC -> Beam Angle
 
 [p1, p2,mdl] = fitData(data.BeamAngleADC, data.BeamAngleRads);
