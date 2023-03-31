@@ -28,7 +28,7 @@
 #include "conversions.h"
 #include "controller_state.h"
 
-#define fs 1000                 // Sampling frequency [Hz] , Ts = 1/fs [s]
+#define fs 100                  // Sampling frequency [Hz] , Ts = 1/fs [s]
 float Ts = 1 / float(fs);       // Sampling Time Ts=1/fs [s] in seconds
 int Ts_m = (int)(Ts * 1000000); // Must multiply Ts by 1000000!
 
@@ -89,16 +89,17 @@ const double g = 9.81;                          // m/s^2
 const double J_b = 2.0 / 5.0 * m * pow(r, 2.0); // kg*m^2
 // const double a = -13.3794;                      // TODO FIND THIS
 // const double b = 747.4732;                      // TODO FIND THIS
-const double a = ;
-const double b = 0.002;
+const double k_theta = 0.0; // TODO FIND THIS
+const double k_theta_dot = -109.9; //% TODO FIND THIS
+const double k_v = 27.8;
 
 // Continuous State Space matrices
 BLA::Matrix<4, 4> Ac = {0.0, 1.0, 0.0, 0.0,
                         0.0, 0.0, -(m *g) / ((J_b / pow(r, 2.0)) + m), 0.0,
                         0.0, 0.0, 0.0, 1.0,
-                        a, 0.0, 0.0, 0};
+                        0.0, 0.0, k_theta, k_theta_dot};
 
-BLA::Matrix<4, 1> Bc = {0.0, 0.0, 0.0, b};
+BLA::Matrix<4, 1> Bc = {0.0, 0.0, 0.0, k_v};
 BLA::Matrix<2, 4> Cc = {1.0, 0.0, 0.0, 0.0,
                         0.0, 0.0, 1.0, 0.0};
 BLA::Matrix<1, 1> Dc = {0.0};
@@ -112,7 +113,21 @@ BLA::Matrix<1, 1> D = Dc;
 // Controller and Observer Config
 // State feedback gain
 BLA::Matrix<1, 4> K_SFC = {
-    -0.0838*1e4,   -0.1876*1e4,    1.0233*1e4,    0.3795*1e4
+    -1.2794,
+    -1.2916,
+    5.1679,
+    -3.1583,
+};
+
+BLA::Matrix<4, 2> L = {
+    0.4419,
+    0.0050,
+    1.9407,
+    0.1720,
+    -0.5580,
+    -0.2177,
+    24.8696,
+    27.3642,
 };
 
 // Controller reference
@@ -194,7 +209,7 @@ void Controller(void)
   // The code inside this section will be run at every Ts
   // Start measuring execution time
   digitalWrite(A3, HIGH);
-
+  analogWrite(OUT3, 0);
   /*
   Board Inputs
   */
@@ -208,18 +223,22 @@ void Controller(void)
 
   // Control Algorithim
   double u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // Serial.printf("voltage %f\n", u_k);
+  u_k = min(u_k, 12.0);
+  u_k = max(u_k, -12.0);
   // Map Contol Effort to output
   out4 = driveVoltageToDAC(u_k);
   // Update state estimate
-  x_hat_k = kalman_filter->filter(u_k, z_k);
+  auto y_hat_k = C * x_hat_k;
+  x_hat_k = A * x_hat_k + B * u_k + L * (z_k - y_hat_k);
 
   // debugging prints
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
-  auto last_in = kalman_filter->get_last_innovation();
+  // auto last_in = kalman_filter->get_last_innovation();
   // Serial.printf("Last innovation );
-  Serial.printf("x_hat_k, %f, %f, %f, %f, u_k %f, position_inno %f, angle inno %f\n",
+  Serial.printf("x_hat_k, %f, %f, %f, %f,\n",
                 x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
-                x_hat_k(3, 0) * 180 / M_PI, u_k, last_in(0, 0), last_in(1, 0));
+                x_hat_k(3, 0) * 180 / M_PI);
 
   // Serial.printf("Drive Voltage %f\n", u_k);
 
@@ -230,7 +249,7 @@ void Controller(void)
   analogWrite(OUT4, out4);
 
   // Stop measuring calculation time
-  digitalWrite(A3, LOW);
+  analogWrite(OUT3, 4000);
 }
 
 //___________________________________________________________________________
