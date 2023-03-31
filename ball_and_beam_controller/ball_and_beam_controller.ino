@@ -113,7 +113,21 @@ BLA::Matrix<1, 1> D = Dc;
 // Controller and Observer Config
 // State feedback gain
 BLA::Matrix<1, 4> K_SFC = {
-    -0.0838*1e4,   -0.1876*1e4,    1.0233*1e4,    0.3795*1e4
+    -1.2794,
+    -1.2916,
+    5.1679,
+    -3.1583,
+};
+
+BLA::Matrix<4, 2> L = {
+    0.4419,
+    0.0050,
+    1.9407,
+    0.1720,
+    -0.5580,
+    -0.2177,
+    24.8696,
+    27.3642,
 };
 
 // Controller reference
@@ -215,7 +229,8 @@ void Controller(void)
   // Map Contol Effort to output
   out4 = driveVoltageToDAC(u_k);
   // Update state estimate
-  x_hat_k = kalman_filter->filter(u_k, z_k);
+  auto y_hat_k = C * x_hat_k;
+  x_hat_k = A * x_hat_k + B * u_k + L * (z_k - y_hat_k);
 
   // debugging prints
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
