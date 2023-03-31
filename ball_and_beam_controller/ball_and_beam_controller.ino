@@ -209,6 +209,9 @@ void Controller(void)
 
   // Control Algorithim
   double u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // Serial.printf("voltage %f\n", u_k);
+  u_k = min(u_k, 12.0);
+  u_k = max(u_k, -12.0);
   // Map Contol Effort to output
   out4 = driveVoltageToDAC(u_k);
   // Update state estimate
