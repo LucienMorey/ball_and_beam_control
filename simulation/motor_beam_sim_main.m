@@ -11,7 +11,6 @@ fs = 100;
 Ts = 1/fs;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 1;
-CL = 1;
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
