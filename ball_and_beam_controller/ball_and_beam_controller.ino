@@ -95,22 +95,18 @@ const double k_theta = 0.0; // TODO FIND THIS
 const double k_theta_dot = -109.9; //% TODO FIND THIS
 const double k_v = 27.8;
 
-// Continuous State Space matrices
-BLA::Matrix<4, 4> Ac = {0.0, 1.0, 0.0, 0.0,
-                        0.0, 0.0, -(m *g) / ((J_b / pow(r, 2.0)) + m), 0.0,
-                        0.0, 0.0, 0.0, 1.0,
-                        0.0, 0.0, k_theta, k_theta_dot};
-
-BLA::Matrix<4, 1> Bc = {0.0, 0.0, 0.0, k_v};
-BLA::Matrix<2, 4> Cc = {1.0, 0.0, 0.0, 0.0,
-                        0.0, 0.0, 1.0, 0.0};
-BLA::Matrix<1, 1> Dc = {0.0};
-
 // Discrete State Space matrices
-BLA::Matrix<4, 4> A = EYE_4 - Ac * Ts;
-BLA::Matrix<4, 1> B = Bc * Ts;
-BLA::Matrix<2, 4> C = Cc;
-BLA::Matrix<1, 1> D = Dc;
+BLA::Matrix<4, 4> A = {1.0000, 0.0100, -0.0004, -0.0000,
+                       0, 1.0000, -0.0701, -0.0003,
+                       0, 0, 1.0000, 0.0080,
+                       0, 0, 0, 0.6209};
+BLA::Matrix<4, 1> B = {0.0000,
+                       -0.0000,
+                       0.0006,
+                       0.1082};
+BLA::Matrix<2, 4> C = {1.0, 0.0, 0.0, 0.0,
+                       0.0, 0.0, 1.0, 0.0};
+BLA::Matrix<1, 1> D = {0.0};
 
 // Controller and Observer Config
 // State feedback gain
