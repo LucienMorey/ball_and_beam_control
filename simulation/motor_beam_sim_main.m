@@ -89,9 +89,8 @@ settling_time = 5;
 zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
 %zeta= 1.2*zeta;
 w_n = 4/(settling_time*zeta);
-
-p1 = -zeta*w_n + w_n*sqrt(1-zeta^2)*1i;
-p2 = -zeta*w_n - w_n*sqrt(1-zeta^2)*1i;
+p1 = -zeta*w_n + w_n*sqrt(zeta^2-1);
+p2 = -zeta*w_n - w_n*sqrt(zeta^2-1);
 
 p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
 p_discrete = exp(p_cont * Ts);
