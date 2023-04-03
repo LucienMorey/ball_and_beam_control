@@ -67,14 +67,6 @@ else
     disp('System is NOT observable')
 end
 disp(' ')
-%% Equilibrium Point
-% Ac is non-sigular
-%disp('--------------------------------')
-%disp('Equilibrium Point')
-%Mo = -Cc*pinv(Ac)*Bc;
-%Nu = inv(Mo)
-%Nx = -pinv(Ac)*Bc*Nu
-%disp(' ');
 %% Discrete-Time Model
 %    x(k+1)=A·x(k)+B·u(k)
 %    y(k)=C·x(k)+D·u(k)
