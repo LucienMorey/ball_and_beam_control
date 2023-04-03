@@ -87,31 +87,37 @@ disp(' ')
 overshoot = 0.14;
 settling_time = 5;
 
-zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2))
+zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
 %zeta= 1.2*zeta;
-w_n = 4/(settling_time*zeta)
+w_n = 4/(settling_time*zeta);
 
 p1 = -zeta*w_n + w_n*sqrt(1-zeta^2)*1i;
 p2 = -zeta*w_n - w_n*sqrt(1-zeta^2)*1i;
 
-p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)]
+p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
+p_discrete = exp(p_cont * Ts);
 
 po_cont = 5*p_cont;
-
-po_discrete = exp(po_cont * Ts)
-
-
-disp('LO DT')
-L = place(A',C',po_discrete)'
-eig(A-L*C)
-
+po_discrete = exp(po_cont * Ts);
 
 disp('SFC DT')
-p_discrete = exp(p_cont * Ts)
-K = place(A,B,p_discrete);
-eig(A-B*K)
 
-%K = place(Ac,Bc, p_cont);
+K = place(A,B,p_discrete);
+
+disp('poles before placement');
+disp(po_discrete);
+disp('poles after placement');
+disp(eig(A-B*K));
+
+disp('LO DT')
+
+L = place(A',C',po_discrete)';
+
+disp('poles before placement');
+disp(p_discrete);
+disp('poles after placement');
+disp(eig(A-L*C));
+
 
 %% Observer
 Q = 1e-10* eye(4);
@@ -120,7 +126,5 @@ P_0 = 0*eye(4,4);
 
 
 
-[Kf,Pf]=dlqr(A',C',Q,R)
-Kf = Kf'
-
-eig(Ac-Kf*C)
+[Kf,Pf]=dlqr(A',C',Q,R);
+Kf = Kf';
