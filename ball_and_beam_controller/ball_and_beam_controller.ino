@@ -227,8 +227,8 @@ void Controller(void)
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
   // auto last_in = kalman_filter->get_last_innovation();
   // Serial.printf("Last innovation );
-  Serial.printf("x_hat_k, %f, %f, %f, %f,\n",
-                x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
+  Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
+                u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
                 x_hat_k(3, 0) * 180 / M_PI);
 
   // Serial.printf("Drive Voltage %f\n", u_k);
