@@ -24,6 +24,7 @@
 #include <ElementStorage.h>
 
 #include "kalman_filter.hpp"
+#include "luenberger_observer.hpp"
 #include "state_feedback_controller.hpp"
 #include "conversions.h"
 #include "controller_state.h"
@@ -73,7 +74,8 @@ BLA::Matrix<2, 1> z_k;
 BLA::Matrix<4, 1> x_hat_k;
 
 // Controller and Observer class instances
-KalmanFilter *kalman_filter;
+// KalmanFilter *kalman_filter;
+LuenbergerObserver *luenberger_observer;
 StateFeedbackController *state_feedback_controller;
 
 ControllerState last_controller_state = STOPPED;
@@ -113,21 +115,14 @@ BLA::Matrix<1, 1> D = Dc;
 // Controller and Observer Config
 // State feedback gain
 BLA::Matrix<1, 4> K_SFC = {
-    -1.2794,
-    -1.2916,
-    5.1679,
-    -3.1583,
+    -1.1391,   -1.0897,    5.0628,   -2.9718
 };
 
 BLA::Matrix<4, 2> L = {
-    0.4419,
-    0.0050,
-    1.9407,
-    0.1720,
-    -0.5580,
-    -0.2177,
-    24.8696,
-    27.3642,
+    0.3692,    0.0044,
+    1.3401,    0.1125,
+   -0.7270,   -0.2916,
+   40.0826,   34.3939,
 };
 
 // Controller reference
@@ -166,7 +161,8 @@ void setup()
 
   x_hat_k = x_hat_0;
 
-  kalman_filter = new KalmanFilter(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
+  // kalman_filter = new KalmanFilter(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
+  luenberger_observer = new LuenbergerObserver(A,B,C,L,x_hat_0);
   state_feedback_controller = new StateFeedbackController(K_SFC);
 
   // Initialize I/O pins to measure execution time
@@ -229,8 +225,7 @@ void Controller(void)
   // Map Contol Effort to output
   out4 = driveVoltageToDAC(u_k);
   // Update state estimate
-  auto y_hat_k = C * x_hat_k;
-  x_hat_k = A * x_hat_k + B * u_k + L * (z_k - y_hat_k);
+  x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
 
   // debugging prints
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
