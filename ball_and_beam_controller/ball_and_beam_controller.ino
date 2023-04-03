@@ -91,7 +91,7 @@ const double g = 9.81;                          // m/s^2
 const double J_b = 2.0 / 5.0 * m * pow(r, 2.0); // kg*m^2
 // const double a = -13.3794;                      // TODO FIND THIS
 // const double b = 747.4732;                      // TODO FIND THIS
-const double k_theta = 0.0; // TODO FIND THIS
+const double k_theta = 0.0;        // TODO FIND THIS
 const double k_theta_dot = -109.9; //% TODO FIND THIS
 const double k_v = 27.8;
 
@@ -156,7 +156,7 @@ void setup()
   x_hat_k = x_hat_0;
 
   // kalman_filter = new KalmanFilter(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
-  luenberger_observer = new LuenbergerObserver(A,B,C,L,x_hat_0);
+  luenberger_observer = new LuenbergerObserver(A, B, C, L, x_hat_0);
   state_feedback_controller = new StateFeedbackController(K_SFC);
 
   // Initialize I/O pins to measure execution time
@@ -220,6 +220,7 @@ void Controller(void)
   out4 = driveVoltageToDAC(u_k);
   // Update state estimate
   x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
+  // x_hat_k = kalman_filter->filter(u_k, z_k);
 
   // debugging prints
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
