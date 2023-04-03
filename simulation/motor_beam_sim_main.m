@@ -19,8 +19,8 @@ r = 0.01; %m
 g = 9.81; %m/s^2
 J_b = 2/5*m*r^2; %kg*m^2
 k_theta = -0;
-k_theta_dot = -109.9;
-k_v = 27.8;
+k_theta_dot = -47.66;
+k_v = 13.6;
 
 position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
