@@ -1,7 +1,7 @@
 clear 
 clc
 
-data = readtable("scope_36.csv");
+data = readtable("scope_4.csv");
 data = data(3:end-1,:);
 
 data.Var3 = movmean(data.Var3,20);
@@ -21,3 +21,7 @@ figure(1)
 plot(data.Var1,data.Var3)
 hold on
 plot(data.Var1, ones(size(data.Var1))*finish_pos)
+title("Experimental Data Closed Loop Validation")
+ylabel("Ball Position (Voltage)")
+xlabel("Time (s)")
+legend("Ball Position","Final Reference")

@@ -24,8 +24,8 @@ Cc = [1 0 0 0;
 Dc = 0;
 
 %%
-overshoot = 0.14;
-settling_time = 5.3;
+overshoot = 0.07;
+settling_time = 4;
 
 zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
 % zeta= 1.2*zeta;
@@ -67,7 +67,7 @@ x0 = [0.2; 0; 0; 0; 0.2; 0; 0; 0];
 
 figure(1)
 plot(t,Y)
-title("Simulation")
+title("Closed Loop SFC and Observer Simulation")
 axis([0 10 -0.3 0.3])
 xlabel('time')
 ylabel('output')
