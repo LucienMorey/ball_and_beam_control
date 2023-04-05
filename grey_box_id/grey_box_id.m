@@ -16,7 +16,7 @@ sys.Structure.Parameters(3).Free = true;
 
 %% Prepare test data
 data = readtable('scope_29.csv');
-data = data(4:end,1:3);
+data = data(4:300,1:3);
 
 inputVoltage = data.Var2;
 beamAngle = data.Var3;
@@ -28,14 +28,14 @@ Fs = 1/ts;
 beamAngle_rads =  0.018152* beamAngle + 0.012149 ; % Beam Angle = 0.018152 * Signal + 0.012149 
 
 %extract small set of sample to account for offset from 0
-first_bit = beamAngle_rads(1:100);
+first_bit = beamAngle_rads(1:50);
 beam_avg = mean(first_bit);
 beamAngle_avg = beamAngle_rads - beam_avg;
 
 beamAngle_avg_dot = diff(beamAngle_avg)/ts;
 
 % create id data
-test_data = iddata(beamAngle_avg_dot,inputVoltage(1:end-1), ts);
+test_data = iddata(beamAngle_avg,inputVoltage(1:end), ts);
 
 %% Estimate system
 opt1 = greyestOptions('InitialState','estimate','Display','on');

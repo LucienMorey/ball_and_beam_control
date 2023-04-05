@@ -11,7 +11,6 @@ fs = 100;
 Ts = 1/fs;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 1;
-CL = 1;
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
@@ -20,8 +19,8 @@ r = 0.01; %m
 g = 9.81; %m/s^2
 J_b = 2/5*m*r^2; %kg*m^2
 k_theta = -0;
-k_theta_dot = -109.9;
-k_v = 27.8;
+k_theta_dot = -47.66;
+k_v = 13.6;
 
 position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
@@ -67,14 +66,6 @@ else
     disp('System is NOT observable')
 end
 disp(' ')
-%% Equilibrium Point
-% Ac is non-sigular
-%disp('--------------------------------')
-%disp('Equilibrium Point')
-%Mo = -Cc*pinv(Ac)*Bc;
-%Nu = inv(Mo)
-%Nx = -pinv(Ac)*Bc*Nu
-%disp(' ');
 %% Discrete-Time Model
 %    x(k+1)=A·x(k)+B·u(k)
 %    y(k)=C·x(k)+D·u(k)
@@ -95,31 +86,36 @@ disp(' ')
 overshoot = 0.14;
 settling_time = 5;
 
-zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2))
+zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
 %zeta= 1.2*zeta;
-w_n = 4/(settling_time*zeta)
+w_n = 4/(settling_time*zeta);
+p1 = -zeta*w_n + w_n*sqrt(zeta^2-1);
+p2 = -zeta*w_n - w_n*sqrt(zeta^2-1);
 
-p1 = -zeta*w_n + w_n*sqrt(1-zeta^2)*1i;
-p2 = -zeta*w_n - w_n*sqrt(1-zeta^2)*1i;
-
-p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)]
+p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
+p_discrete = exp(p_cont * Ts);
 
 po_cont = 5*p_cont;
-
-po_discrete = exp(po_cont * Ts)
-
-
-disp('LO DT')
-L = place(A',C',po_discrete)'
-eig(A-L*C)
-
+po_discrete = exp(po_cont * Ts);
 
 disp('SFC DT')
-p_discrete = exp(p_cont * Ts)
-K = place(A,B,p_discrete);
-eig(A-B*K)
 
-%K = place(Ac,Bc, p_cont);
+K = place(A,B,p_discrete);
+
+disp('poles before placement');
+disp(po_discrete);
+disp('poles after placement');
+disp(eig(A-B*K));
+
+disp('LO DT')
+
+L = place(A',C',po_discrete)';
+
+disp('poles before placement');
+disp(p_discrete);
+disp('poles after placement');
+disp(eig(A-L*C));
+
 
 %% Observer
 Q = 1e-10* eye(4);
@@ -128,7 +124,5 @@ P_0 = 0*eye(4,4);
 
 
 
-[Kf,Pf]=dlqr(A',C',Q,R)
-Kf = Kf'
-
-eig(Ac-Kf*C)
+[Kf,Pf]=dlqr(A',C',Q,R);
+Kf = Kf';
