@@ -67,7 +67,7 @@ x0 = [0.2; 0; 0; 0; 0.2; 0; 0; 0];
 
 figure(1)
 plot(t,Y)
-title("Simulation")
+title("Closed Loop SFC and Observer Simulation")
 axis([0 10 -0.3 0.3])
 xlabel('time')
 ylabel('output')
