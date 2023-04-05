@@ -25,6 +25,7 @@ public:
 
     BLA::Matrix<4, 1> filter(double control_input, BLA::Matrix<2, 1> measurement);
     BLA::Matrix<2, 1> get_last_innovation(void);
+    BLA::Matrix<4, 2> get_last_kalman_gain(void);
 
 private:
     BLA::Matrix<4, 1> predict_state(double control_input);
@@ -49,6 +50,7 @@ private:
     BLA::Matrix<4, 1> x_hat_k_;
 
     BLA::Matrix<2, 1> last_innovation_;
+    BLA::Matrix<4, 2> kalman_gain_;
 };
 
 #endif
