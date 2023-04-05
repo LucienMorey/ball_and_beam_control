@@ -68,6 +68,11 @@ BLA::Matrix<2, 1> KalmanFilter::get_last_innovation(void)
     return last_innovation_;
 }
 
+BLA::Matrix<4, 2> KalmanFilter::get_last_kalman_gain(void)
+{
+    return kalman_gain_;
+}
+
 BLA::Matrix<4, 1> KalmanFilter::filter(double control_input, BLA::Matrix<2, 1> measurement)
 {
     // Prediction
@@ -75,11 +80,11 @@ BLA::Matrix<4, 1> KalmanFilter::filter(double control_input, BLA::Matrix<2, 1> m
     BLA::Matrix<4, 4> predicted_covariance = predict_covariance();
 
     // update
-    BLA::Matrix<4, 2> kalman_gain = compute_kalman_gain(predicted_covariance);
+    kalman_gain_ = compute_kalman_gain(predicted_covariance);
     BLA::Matrix<2, 1> predicted_measurement = predict_measurement(predicted_state);
 
-    BLA::Matrix<4, 1> estimated_state = compute_updated_state_estimate(predicted_state, kalman_gain, measurement, predicted_measurement);
-    BLA::Matrix<4, 4> updated_covariance = compute_updated_covariance(kalman_gain, predicted_covariance);
+    BLA::Matrix<4, 1> estimated_state = compute_updated_state_estimate(predicted_state, kalman_gain_, measurement, predicted_measurement);
+    BLA::Matrix<4, 4> updated_covariance = compute_updated_covariance(kalman_gain_, predicted_covariance);
 
     x_hat_k_ = estimated_state;
     P_k_ = updated_covariance;
