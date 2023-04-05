@@ -36,7 +36,7 @@ p2 = -zeta*w_n - w_n*sqrt(zeta^2-1);
 
 p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
 p_discrete = exp(p_cont * Ts);
-po_cont = 10*p_cont;
+po_cont = 5*p_cont;
 po_discrete = exp(po_cont * Ts);
 
 
