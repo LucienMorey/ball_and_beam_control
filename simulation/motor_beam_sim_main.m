@@ -26,12 +26,12 @@ position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
 voltage_noise =1e-6;
   
-p_0 = 0.2; %m
+p_0 = 0.4; %m
 p_dot_0 = 0.0; %m/s
 theta_0 = 0.0; %rad
 theta_dot_0 = 0.0; %rad/s
 
-p_hat_0 = 0.3; %m
+p_hat_0 = 0.4; %m
 p_dot_hat_0 = 0.0; %m/s
 theta_hat_0 = 0* pi/180; %rad
 theta_dot_hat_0 = 0.0; %rad/s
@@ -83,8 +83,8 @@ disp(' ')
 %% State Feedback
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system
-overshoot = 0.14;
-settling_time = 5;
+overshoot = 0.07;
+settling_time = 4;
 
 zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
 %zeta= 1.2*zeta;

@@ -111,16 +111,16 @@ BLA::Matrix<1, 1> D = {0.0};
 // Controller and Observer Config
 // State feedback gain
 BLA::Matrix<1, 4> K_SFC = {
-    -1.7760, -1.6998, 7.8997, -1.9702};
+    -2.8604, -2.9710, 11.9944, -1.6166};
 
 BLA::Matrix<4, 2> L = {
-    0.1786, 0.0408,
-    -4.2861, 1.3745,
-    -0.8207, 0.1867,
-    4.8999, 0.8632};
+    0.4241, 0.0252,
+    2.9513, -0.0946,
+    0.5623, 0.0877,
+    1.1282, -0.6187};
 
 // Controller reference
-BLA::Matrix<4, 1> x_ref = {0.0, 0.0, 0.0, 0.0};
+BLA::Matrix<4, 1> x_ref = {-0.2, 0.0, 0.0, 0.0};
 double u_ref = 0.0;
 
 // hardware noise to create covariance matrices
@@ -139,7 +139,7 @@ BLA::Matrix<4, 4> P_0 = {1.0, 0.0, 0.0, 0.0,
                          0.0, 0.0, 1.0, 0.0,
                          0.0, 0.0, 0.0, 1.0};
 //  initial observer estimate
-BLA::Matrix<4, 1> x_hat_0 = {0.0, 0.0, 0.0, 0.0};
+BLA::Matrix<4, 1> x_hat_0 = {0.45, 0.0, 0.0, 0.0};
 
 //___________________________________________________________________________
 //
