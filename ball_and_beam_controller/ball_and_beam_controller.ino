@@ -27,6 +27,7 @@
 #include "state_feedback_controller.hpp"
 #include "conversions.h"
 #include "controller_state.h"
+#include <memory>
 
 #define fs 100                  // Sampling frequency [Hz] , Ts = 1/fs [s]
 float Ts = 1 / float(fs);       // Sampling Time Ts=1/fs [s] in seconds
@@ -72,9 +73,9 @@ Eigen::Matrix<double, output_dimension, 1> z_k;
 Eigen::Matrix<double, state_dimension, 1> x_hat_k;
 
 // Controller and Observer class instances
-// KalmanFilter<state_dimension, control_dimension, output_dimension> *kalman_filter;
-LuenbergerObserver<state_dimension, control_dimension, output_dimension> *luenberger_observer;
-StateFeedbackController<state_dimension, control_dimension> *state_feedback_controller;
+std::unique_ptr<KalmanFilter<state_dimension, control_dimension, output_dimension>> kalman_filter;
+std::unique_ptr<LuenbergerObserver<state_dimension, control_dimension, output_dimension>> luenberger_observer;
+std::unique_ptr<StateFeedbackController<state_dimension, control_dimension>> state_feedback_controller;
 
 ControllerState last_controller_state = STOPPED;
 ControllerState current_controller_state = STOPPED;
@@ -166,10 +167,10 @@ void setup()
   u_ref << 0.0;
   Serial.printf("matrix finsihed\n");
 
-  // kalman_filter = new KalmanFilter<state_dimension, control_dimension, output_dimension>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
-  luenberger_observer = new LuenbergerObserver<state_dimension, control_dimension, output_dimension>(A, B, C, L, x_hat_0);
+  kalman_filter = std::make_unique<KalmanFilter<state_dimension, control_dimension, output_dimension>>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
+  luenberger_observer = std::make_unique<LuenbergerObserver<state_dimension, control_dimension, output_dimension>>(A, B, C, L, x_hat_0);
   Serial.printf("obs finsihed\n");
-  // state_feedback_controller = new StateFeedbackController<state_dimension, control_dimension>(K_SFC);
+  state_feedback_controller = std::make_unique<StateFeedbackController<state_dimension, control_dimension>>(K_SFC);
   Serial.printf("OBJECTSs finsihed\n");
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
