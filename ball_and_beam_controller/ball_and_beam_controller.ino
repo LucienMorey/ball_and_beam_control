@@ -21,7 +21,6 @@
  *******************************************************/
 
 #include <ArduinoEigen.h>
-#include <ElementStorage.h>
 
 #include "kalman_filter.hpp"
 #include "luenberger_observer.hpp"

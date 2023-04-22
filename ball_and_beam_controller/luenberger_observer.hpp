@@ -2,12 +2,11 @@
 #define LUENBERGER_OBSERVER_H
 
 #include <ArduinoEigen.h>
-#include <Arduino.h>
 
 template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
 class LuenbergerObserver
 {
-  public:
+public:
     typedef Eigen::Matrix<double, state_dimension, state_dimension> state_matrix_t;
     typedef Eigen::Matrix<double, state_dimension, control_dimension> control_matrix_t;
     typedef Eigen::Matrix<double, output_dimension, state_dimension> output_matrix_t;
@@ -17,7 +16,6 @@ class LuenbergerObserver
     typedef Eigen::Matrix<double, output_dimension, 1> observation_vector_t;
 
     typedef Eigen::Matrix<double, state_dimension, output_dimension> observation_gain_matrix_t;
-
 
     LuenbergerObserver(state_matrix_t A, control_matrix_t B,
                        output_matrix_t C, observation_gain_matrix_t L, state_vector_t x_hat_0)
