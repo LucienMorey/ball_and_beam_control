@@ -1,9 +1,10 @@
 #include "kalman_filter.hpp"
 
-KalmanFilter::KalmanFilter(BLA::Matrix<4, 4> A, BLA::Matrix<4, 1> B,
-                           BLA::Matrix<2, 4> C, BLA::Matrix<4, 4> Q,
-                           BLA::Matrix<2, 2> R, BLA::Matrix<4, 1> x_hat_0,
-                           BLA::Matrix<4, 4> P_0)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+KalmanFilter<state_dimension, control_dimension, output_dimension>::KalmanFilter(state_matrix_t A, control_matrix_t B,
+                                                                                 output_matrix_t C, state_penalty_matrix_t Q,
+                                                                                 observation_penalty_matrix_t R, state_vector_t x_hat_0,
+                                                                                 state_matrix_t P_0)
 {
     A_ = A;
     B_ = B;
@@ -14,39 +15,46 @@ KalmanFilter::KalmanFilter(BLA::Matrix<4, 4> A, BLA::Matrix<4, 1> B,
 
     P_k_ = P_0;
     x_hat_k_ = x_hat_0;
+
+    state_dimension_ = state_dimension;
+    control_dimension_ = control_dimension;
+    output_dimension_ = output_dimension;
 }
 
-KalmanFilter::~KalmanFilter() {}
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+KalmanFilter<state_dimension, control_dimension, output_dimension>::~KalmanFilter() {}
 
-BLA::Matrix<4, 1> KalmanFilter::predict_state(double control_input)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::state_vector_t KalmanFilter<state_dimension, control_dimension, output_dimension>::predict_state(input_vector_t control_input)
 {
 
     return A_ * x_hat_k_ + B_ * control_input;
 }
 
-BLA::Matrix<4, 4> KalmanFilter::predict_covariance(void)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::state_matrix_t KalmanFilter<state_dimension, control_dimension, output_dimension>::predict_covariance(void)
 {
-    return A_ * P_k_ * ~A_ + Q_;
+    return A_ * P_k_ * A_.transpose() + Q_;
 }
 
-BLA::Matrix<4, 2> KalmanFilter::compute_kalman_gain(BLA::Matrix<4, 4> predicted_covariance)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::observation_gain_matrix_t KalmanFilter<state_dimension, control_dimension, output_dimension>::compute_kalman_gain(state_matrix_t predicted_covariance)
 {
-    // Does this term have a name?
-    BLA::Matrix<2, 2> thing = C_ * predicted_covariance * ~C_ + R_;
     // THis function modifies in place (matrix is parsed by reference)
-    Invert(thing);
-    return predicted_covariance * ~C_ * thing;
+    return predicted_covariance * C_.transpose() * (C_ * predicted_covariance * C_.transpose() + R_).inverse();
 }
 
-BLA::Matrix<2, 1> KalmanFilter::predict_measurement(BLA::Matrix<4, 1> predicted_state)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::observation_vector_t KalmanFilter<state_dimension, control_dimension, output_dimension>::predict_measurement(state_vector_t predicted_state)
 {
     return C_ * predicted_state;
 }
 
-BLA::Matrix<4, 1> KalmanFilter::compute_updated_state_estimate(BLA::Matrix<4, 1> predicted_state,
-                                                               BLA::Matrix<4, 2> kalman_gain,
-                                                               BLA::Matrix<2, 1> measurement,
-                                                               BLA::Matrix<2, 1> predicted_measurement)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::state_vector_t KalmanFilter<state_dimension, control_dimension, output_dimension>::compute_updated_state_estimate(state_vector_t predicted_state,
+                                                                                                                                                                                               observation_gain_matrix_t kalman_gain,
+                                                                                                                                                                                               observation_vector_t measurement,
+                                                                                                                                                                                               observation_vector_t predicted_measurement)
 
 {
     last_innovation_ = measurement - predicted_measurement;
@@ -54,37 +62,37 @@ BLA::Matrix<4, 1> KalmanFilter::compute_updated_state_estimate(BLA::Matrix<4, 1>
     return predicted_state + kalman_gain * last_innovation_;
 }
 
-BLA::Matrix<4, 4> KalmanFilter::compute_updated_covariance(BLA::Matrix<4, 2> kalman_gain, BLA::Matrix<4, 4> predicted_covariance)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::state_matrix_t KalmanFilter<state_dimension, control_dimension, output_dimension>::compute_updated_covariance(observation_gain_matrix_t kalman_gain, state_matrix_t predicted_covariance)
 {
-    BLA::Matrix<4, 4> eye_4 = {1.0, 0.0, 0.0, 0.0,
-                               0.0, 1.0, 0.0, 0.0,
-                               0.0, 0.0, 1.0, 0.0,
-                               0.0, 0.0, 0.0, 1.0};
-    return (eye_4 - kalman_gain * C_) * predicted_covariance;
+    return (Eigen::MatrixXd::Identity(state_dimension_, state_dimension_) - kalman_gain * C_) * predicted_covariance;
 }
 
-BLA::Matrix<2, 1> KalmanFilter::get_last_innovation(void)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::observation_vector_t KalmanFilter<state_dimension, control_dimension, output_dimension>::get_last_innovation(void)
 {
     return last_innovation_;
 }
 
-BLA::Matrix<4, 2> KalmanFilter::get_last_kalman_gain(void)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::observation_gain_matrix_t KalmanFilter<state_dimension, control_dimension, output_dimension>::get_last_kalman_gain(void)
 {
     return kalman_gain_;
 }
 
-BLA::Matrix<4, 1> KalmanFilter::filter(double control_input, BLA::Matrix<2, 1> measurement)
+template <size_t state_dimension, size_t control_dimension, size_t output_dimension>
+typename KalmanFilter<state_dimension, control_dimension, output_dimension>::state_vector_t KalmanFilter<state_dimension, control_dimension, output_dimension>::filter(input_vector_t control_input, observation_vector_t measurement)
 {
     // Prediction
-    BLA::Matrix<4, 1> predicted_state = predict_state(control_input);
-    BLA::Matrix<4, 4> predicted_covariance = predict_covariance();
+    state_vector_t predicted_state = predict_state(control_input);
+    state_matrix_t predicted_covariance = predict_covariance();
 
     // update
     kalman_gain_ = compute_kalman_gain(predicted_covariance);
-    BLA::Matrix<2, 1> predicted_measurement = predict_measurement(predicted_state);
+    observation_vector_t predicted_measurement = predict_measurement(predicted_state);
 
-    BLA::Matrix<4, 1> estimated_state = compute_updated_state_estimate(predicted_state, kalman_gain_, measurement, predicted_measurement);
-    BLA::Matrix<4, 4> updated_covariance = compute_updated_covariance(kalman_gain_, predicted_covariance);
+    state_vector_t estimated_state = compute_updated_state_estimate(predicted_state, kalman_gain_, measurement, predicted_measurement);
+    state_matrix_t updated_covariance = compute_updated_covariance(kalman_gain_, predicted_covariance);
 
     x_hat_k_ = estimated_state;
     P_k_ = updated_covariance;

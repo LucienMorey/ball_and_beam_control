@@ -20,7 +20,7 @@
     BasicLinearAlgebra
  *******************************************************/
 
-#include <BasicLinearAlgebra.h>
+#include <ArduinoEigen.h>
 #include <ElementStorage.h>
 
 #include "kalman_filter.hpp"
@@ -32,11 +32,6 @@
 #define fs 100                  // Sampling frequency [Hz] , Ts = 1/fs [s]
 float Ts = 1 / float(fs);       // Sampling Time Ts=1/fs [s] in seconds
 int Ts_m = (int)(Ts * 1000000); // Must multiply Ts by 1000000!
-
-BLA::Matrix<4, 4> EYE_4 = {1.0, 0.0, 0.0, 0.0,
-                           0.0, 1.0, 0.0, 0.0,
-                           0.0, 0.0, 1.0, 0.0,
-                           0.0, 0.0, 0.0, 1.0};
 
 // Input Pins
 // DO NOT CHANGE!!
@@ -69,77 +64,54 @@ uint16_t out4 = 0; // Board Output 4 (+/-12V)
     Default resolution if not used is 10bits.
 const int res = 12;
 
+const size_t state_dimension = 4U;
+const size_t control_dimension = 1U;
+const size_t output_dimension = 2U;
+
 // forward_dec vars
-BLA::Matrix<2, 1> z_k;
-BLA::Matrix<4, 1> x_hat_k;
+Eigen::Matrix<double, output_dimension, 1> z_k;
+Eigen::Matrix<double, state_dimension, 1> x_hat_k;
 
 // Controller and Observer class instances
-// KalmanFilter *kalman_filter;
-LuenbergerObserver *luenberger_observer;
-StateFeedbackController *state_feedback_controller;
+// KalmanFilter<state_dimension, control_dimension, output_dimension> *kalman_filter;
+LuenbergerObserver<state_dimension, control_dimension, output_dimension> *luenberger_observer;
+StateFeedbackController<state_dimension, control_dimension> *state_feedback_controller;
 
 ControllerState last_controller_state = STOPPED;
 ControllerState current_controller_state = STOPPED;
 IntervalTimer myTimer;
 
-// System Paramaters
-const double length = 0.91;                     // m
-const double height = 0.32;                     // M
-const double m = 0.03299;                       // kg
-const double r = 0.01;                          // m
-const double g = 9.81;                          // m/s^2
-const double J_b = 2.0 / 5.0 * m * pow(r, 2.0); // kg*m^2
-// const double a = -13.3794;                      // TODO FIND THIS
-// const double b = 747.4732;                      // TODO FIND THIS
-const double k_theta = 0.0;        // TODO FIND THIS
-const double k_theta_dot = -109.9; //% TODO FIND THIS
-const double k_v = 27.8;
-
 // Discrete State Space matrices
-BLA::Matrix<4, 4> A = {1.0000, 0.0100, -0.0004, -0.0000,
-                       0, 1.0000, -0.0701, -0.0003,
-                       0, 0, 1.0000, 0.0080,
-                       0, 0, 0, 0.6209};
-BLA::Matrix<4, 1> B = {0.0000,
-                       -0.0000,
-                       0.0006,
-                       0.1082};
-BLA::Matrix<2, 4> C = {1.0, 0.0, 0.0, 0.0,
-                       0.0, 0.0, 1.0, 0.0};
-BLA::Matrix<1, 1> D = {0.0};
+Eigen::Matrix<double, state_dimension, state_dimension> A;
+Eigen::Matrix<double, state_dimension, control_dimension> B;
+Eigen::Matrix<double, output_dimension, state_dimension> C;
 
 // Controller and Observer Config
 // State feedback gain
-BLA::Matrix<1, 4> K_SFC = {
-    -2.8604, -2.9710, 11.9944, -1.6166};
+Eigen::Matrix<double, control_dimension, state_dimension> K_SFC;
 
-BLA::Matrix<4, 2> L = {
-    0.4241, 0.0252,
-    2.9513, -0.0946,
-    0.5623, 0.0877,
-    1.1282, -0.6187};
+Eigen::Matrix<double, state_dimension, output_dimension> L;
 
 // Controller reference
-BLA::Matrix<4, 1> x_ref = {-0.2, 0.0, 0.0, 0.0};
-double u_ref = 0.0;
+Eigen::Matrix<double, state_dimension, 1>
+    x_ref;
+
+Eigen::Matrix<double, control_dimension, 1> u_ref;
 
 // hardware noise to create covariance matrices
 const double position_variance = 1.1212 / 100.0;
 const double angle_variance = 0.0045;
 const double voltage_variance = 1e-6;
 
-BLA::Matrix<4, 4> kalman_Q = EYE_4 * 1e5;
-BLA::Matrix<2, 2> kalman_R = {pow(position_variance, 2.0), 0,
-                              0, pow(angle_variance, 2.0)};
+Eigen::Matrix<double, state_dimension, state_dimension> kalman_Q;
+
+Eigen::Matrix<double, output_dimension, output_dimension> kalman_R;
 
 // initial conditions
 // initial observer covariance
-BLA::Matrix<4, 4> P_0 = {1.0, 0.0, 0.0, 0.0,
-                         0.0, 1.0, 0.0, 0.0,
-                         0.0, 0.0, 1.0, 0.0,
-                         0.0, 0.0, 0.0, 1.0};
+Eigen::Matrix<double, state_dimension, state_dimension> P_0;
 //  initial observer estimate
-BLA::Matrix<4, 1> x_hat_0 = {0.45, 0.0, 0.0, 0.0};
+Eigen::Matrix<double, state_dimension, 1> x_hat_0;
 
 //___________________________________________________________________________
 //
@@ -152,13 +124,54 @@ void setup()
   // Initialize Serial Bus
   Serial.begin(115200);
   delay(200);
+  Serial.printf("setup start\n");
+
+  A << 1.0000, 0.0100, -0.0004, -0.0000,
+      0, 1.0000, -0.0701, -0.0003,
+      0, 0, 1.0000, 0.0080,
+      0, 0, 0, 0.6209;
+
+  B << 0.0000,
+      -0.0000,
+      0.0006,
+      0.1082;
+
+  C << 1.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0;
+
+  K_SFC << -2.8604, -2.9710, 11.9944, -1.6166;
+
+  L << 0.4241, 0.0252,
+      2.9513, -0.0946,
+      0.5623, 0.0877,
+      1.1282, -0.6187;
+
+  x_ref << -0.2,
+      0.0,
+      0.0,
+      0.0;
+
+  x_hat_0 << 0.45,
+      0.0,
+      0.0,
+      0.0;
+
+  kalman_Q = Eigen::MatrixXd::Identity(state_dimension, state_dimension) * 1e5;
+
+  kalman_R << pow(position_variance, 2.0), 0,
+      0, pow(angle_variance, 2.0);
+
+  P_0 = Eigen::MatrixXd::Identity(state_dimension, state_dimension);
 
   x_hat_k = x_hat_0;
+  u_ref << 0.0;
+  Serial.printf("matrix finsihed\n");
 
-  // kalman_filter = new KalmanFilter(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
-  luenberger_observer = new LuenbergerObserver(A, B, C, L, x_hat_0);
-  state_feedback_controller = new StateFeedbackController(K_SFC);
-
+  // kalman_filter = new KalmanFilter<state_dimension, control_dimension, output_dimension>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
+  luenberger_observer = new LuenbergerObserver<state_dimension, control_dimension, output_dimension>(A, B, C, L, x_hat_0);
+  Serial.printf("obs finsihed\n");
+  // state_feedback_controller = new StateFeedbackController<state_dimension, control_dimension>(K_SFC);
+  Serial.printf("OBJECTSs finsihed\n");
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(A3, OUTPUT);
@@ -184,6 +197,8 @@ void setup()
   analogWriteFrequency(OUT2, 100000);
   analogWriteFrequency(OUT3, 100000);
   analogWriteFrequency(OUT4, 100000);
+
+  Serial.printf("setup finsihed\n");
 }
 
 //___________________________________________________________________________
@@ -212,23 +227,23 @@ void Controller(void)
   z_k = {adcToBallPosition(in4), adcToBeamAngleRads(in3)};
 
   // Control Algorithim
-  double u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // Serial.printf("voltage %f\n", u_k);
-  u_k = min(u_k, 12.0);
-  u_k = max(u_k, -12.0);
+  // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // // Serial.printf("voltage %f\n", u_k);
+  // u_k(0, 0) = min(u_k(0, 0), 12.0);
+  // u_k(0, 0) = max(u_k(0, 0), -12.0);
   // Map Contol Effort to output
-  out4 = driveVoltageToDAC(u_k);
+  // out4 = driveVoltageToDAC(u_k(0, 0));
   // Update state estimate
-  x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
+  // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
   // x_hat_k = kalman_filter->filter(u_k, z_k);
 
   // debugging prints
   // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
   // auto last_in = kalman_filter->get_last_innovation();
   // Serial.printf("Last innovation );
-  Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
-                u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
-                x_hat_k(3, 0) * 180 / M_PI);
+  // Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
+  //               u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
+  //               x_hat_k(3, 0) * 180 / M_PI);
 
   // Serial.printf("Drive Voltage %f\n", u_k);
 
