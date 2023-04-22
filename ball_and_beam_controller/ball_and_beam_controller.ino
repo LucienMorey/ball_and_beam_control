@@ -55,13 +55,13 @@ uint16_t in4 = 0; // Board Input 4 (+/-12V)
 uint16_t out4 = 0; // Board Output 4 (+/-12V)
 
 // Set Default Resolution of PWM Signal
- // ADC and PWM/DAC Resolution                                                      \
-    The Due, Zero and MKR Family boards have 12-bit ADC capabilities    \
-    that can be accessed by changing the resolution to 12.              \
-    12 bits will return values from analogRead() between 0 and 4095.    \
-    11 bits will return values from analogRead() between 0 and 2047.    \
-    10 bits will return values from analogRead() between 0 and 1023.    \
-    Default resolution if not used is 10bits.
+// ADC and PWM/DAC Resolution
+// The Due, Zero and MKR Family boards have 12 - bit ADC capabilities
+// that can be accessed by changing the resolution to 12.
+// 12 bits will return values from analogRead() between 0 and 4095.
+// 11 bits will return values from analogRead() between 0 and 2047.
+// 10 bits will return values from analogRead() between 0 and 1023.
+// Default resolution if not used is 10bits.
 const int res = 12;
 
 const size_t state_dimension = 4U;
@@ -209,10 +209,8 @@ void Controller(void)
   // Start measuring execution time
   digitalWrite(A3, HIGH);
   analogWrite(OUT3, 0);
-  /*
-  Board Inputs
-  */
-  // read_inputx(disp) //disp = 1 will display input data in Serial Monitor
+
+  // Board Inputs
   in3 = analogRead(IN3); // -12v -> 12v
   in4 = analogRead(IN4); // -12v -> 12v
 
@@ -221,30 +219,24 @@ void Controller(void)
   z_k = {adcToBallPosition(in4), adcToBeamAngleRads(in3)};
 
   // Control Algorithim
-  // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // // Serial.printf("voltage %f\n", u_k);
-  // u_k(0, 0) = min(u_k(0, 0), 12.0);
-  // u_k(0, 0) = max(u_k(0, 0), -12.0);
+  auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+
+  // saturate control action
+  u_k(0, 0) = min(u_k(0, 0), 12.0);
+  u_k(0, 0) = max(u_k(0, 0), -12.0);
+
   // Map Contol Effort to output
-  // out4 = driveVoltageToDAC(u_k(0, 0));
+  out4 = driveVoltageToDAC(u_k(0, 0));
+
   // Update state estimate
-  // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
+  x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
   // x_hat_k = kalman_filter->filter(u_k, z_k);
 
-  // debugging prints
-  // Serial.printf("BALL POS %f, ANGLE %f\n", adcToBallPosition(in4), adcToBeamAngleDegrees(in3));
-  // auto last_in = kalman_filter->get_last_innovation();
-  // Serial.printf("Last innovation );
-  // Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
-  //               u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
-  //               x_hat_k(3, 0) * 180 / M_PI);
+  Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
+                u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
+                x_hat_k(3, 0) * 180 / M_PI);
 
-  // Serial.printf("Drive Voltage %f\n", u_k);
-
-  /*
-  Board Outputs
-  */
-  // write_outx(value, disp)
+  // Board Outputs
   analogWrite(OUT4, out4);
 
   // Stop measuring calculation time
