@@ -25,6 +25,8 @@ public:
         return control_input;
     }
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
 private:
     controller_gain_matrix_t K_;
 };

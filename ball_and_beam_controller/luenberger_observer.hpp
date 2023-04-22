@@ -40,6 +40,8 @@ public:
         return x_hat_k_;
     }
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
 private:
     state_matrix_t A_;
     control_matrix_t B_;
