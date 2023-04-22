@@ -124,7 +124,6 @@ void setup()
   // Initialize Serial Bus
   Serial.begin(115200);
   delay(200);
-  Serial.printf("setup start\n");
 
   A << 1.0000, 0.0100, -0.0004, -0.0000,
       0, 1.0000, -0.0701, -0.0003,
@@ -165,13 +164,10 @@ void setup()
 
   x_hat_k = x_hat_0;
   u_ref << 0.0;
-  Serial.printf("matrix finsihed\n");
 
   kalman_filter = std::make_unique<KalmanFilter<state_dimension, control_dimension, output_dimension>>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
   luenberger_observer = std::make_unique<LuenbergerObserver<state_dimension, control_dimension, output_dimension>>(A, B, C, L, x_hat_0);
-  Serial.printf("obs finsihed\n");
   state_feedback_controller = std::make_unique<StateFeedbackController<state_dimension, control_dimension>>(K_SFC);
-  Serial.printf("OBJECTSs finsihed\n");
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(A3, OUTPUT);
@@ -197,8 +193,6 @@ void setup()
   analogWriteFrequency(OUT2, 100000);
   analogWriteFrequency(OUT3, 100000);
   analogWriteFrequency(OUT4, 100000);
-
-  Serial.printf("setup finsihed\n");
 }
 
 //___________________________________________________________________________
