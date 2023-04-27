@@ -11,19 +11,21 @@ fs = 100;
 Ts = 1/fs;
 
 % voltage input dead zone for system [upper, lower]
-dead_zone = [0.1, -0.1];
+dead_zone = [0.0, -0.0];
 
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 2; % 0: Open Loop
+CTLR = 3; % 0: Open Loop
           % 1: State Feedback
           % 2: LQR
+          % 3: LQR + integral action
 
 OBS = 1; % 0: No observer
          % 1: observer
 
-noise = 0; %set 0 or 1, nothing else!
+sensor_noise = 1; %set 0 or 1, nothing else!
+input_noise = 1;
 
 %% Parameters
 length = 0.91; %m
@@ -123,17 +125,32 @@ L = place(A',C',po_discrete)'
 % disp('poles after placement');
 % disp(eig(A-L*C));
 
-%% LQR + integral action + Kalman Filter
+%% LQR + Kalman Filter
 
 %LQR
-Q = C'*C;
-R = 0.01;
-[Kf,S,P] =dlqr(A, B, Q, R);
-
+Q_lqr = diag([1,1,15,20]);
+R_lqr = 0.01;
+[Kf,S,P] =dlqr(A, B, Q_lqr, R_lqr);
 
 % Kalman Filter
-Q = 0.00001* eye(4);
+Q = 1e-10* eye(4);
 R = diag([position_variance^2, angle_variance^2]);
 P_0 = 0*eye(4,4);
 
+%% Integral Action
+
+A_augmented = [A zeros(size(A,1),size(C,1));
+               -C zeros(size(C,1))];
+
+B_augmented = [B;
+               zeros(size(C,1)',size(B,2))];
+
+%LQR
+Q_lqr = diag([1, 1, 15, 20, 100, 5]);
+R_lqr = 0.01;
+[Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
+
 %% Sliding Mode Control
+
+%% Run Simulation
+sim('motor_beam_model_sim.slx');
