@@ -10,11 +10,22 @@ Tsim=10;
 fs = 100;
 Ts = 1/fs;
 
-upper_dead_zone = 0.1;
-lower_dead_zone =-0.1;
-% if obs = 1 then the kalman filter will be used for control calculations
-OBS = 1;
+% voltage input dead zone for system [upper lower]
+dead_zone = [0.1, -0.1];
+
+% voltage input limit [upper lower]
+input_limit = [10, -10];
+
+CTLR = 1; % 0: Open Loop
+          % 1: State Feedback
+          % 2: LQR
+
+OBS = 1; % 0: No observer
+         % 1: Luenberger
+         % 2: Kalman Filter
+
 noise = 0; %set 0 or 1, nothing else!
+
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
@@ -29,18 +40,13 @@ k_v = 20.83;
 position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
 voltage_noise =1e-6;
-  
-p_0 = 0.4; %m
-p_dot_0 = 0.0; %m/s
-theta_0 = 0.0; %rad
-theta_dot_0 = 0.0; %rad/s
 
-p_hat_0 = 0.4; %m
-p_dot_hat_0 = 0.0; %m/s
-theta_hat_0 = 0* pi/180; %rad
-theta_dot_hat_0 = 0.0; %rad/s
+% initial states [p (m), p_dot (m/s), theta (rads), theta_dot (rads/s)]
+xo = [0.4 0.0 0.0 0.0]';
+xo_hat = [0.4 0.0 0.0 0.0]'; 
+
 %% Continuous-time Model 
-% = [p p_dot theta theta_dot]'
+% x = [p p_dot theta theta_dot]'
 Ac = [0, 1, 0, 0;
       0, 0, -(m*g)/((J_b/(r^2))+m), 0;
       0, 0, 0, 1;
