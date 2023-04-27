@@ -10,19 +10,18 @@ Tsim=10;
 fs = 100;
 Ts = 1/fs;
 
-% voltage input dead zone for system [upper lower]
+% voltage input dead zone for system [upper, lower]
 dead_zone = [0.1, -0.1];
 
-% voltage input limit [upper lower]
+% voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 1; % 0: Open Loop
+CTLR = 2; % 0: Open Loop
           % 1: State Feedback
           % 2: LQR
 
 OBS = 1; % 0: No observer
-         % 1: Luenberger
-         % 2: Kalman Filter
+         % 1: observer
 
 noise = 0; %set 0 or 1, nothing else!
 
@@ -90,17 +89,15 @@ B=d_sys.B
 C=d_sys.C
 D=d_sys.D;
 disp(' ')
-%% State Feedback
+
+%% State Feedback + Luenberger
+
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system
 overshoot = 0.07;
 settling_time = 4;
 
-zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
-%zeta= 1.2*zeta;
-w_n = 4/(settling_time*zeta);
-p1 = -zeta*w_n + w_n*sqrt(zeta^2-1);
-p2 = -zeta*w_n - w_n*sqrt(zeta^2-1);
+[p1, p2] = second_order_poles(overshoot, settling_time);
 
 p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
 p_discrete = exp(p_cont * Ts);
@@ -108,7 +105,7 @@ p_discrete = exp(p_cont * Ts);
 po_cont = 5*p_cont;
 po_discrete = exp(po_cont * Ts);
 
-disp('SFC DT')
+disp('SFC:')
 
 K = place(A,B,p_discrete)
 
@@ -126,13 +123,17 @@ L = place(A',C',po_discrete)'
 % disp('poles after placement');
 % disp(eig(A-L*C));
 
+%% LQR + integral action + Kalman Filter
 
-%% Observer
-Q = 1e-10* eye(4);
+%LQR
+Q = C'*C;
+R = 0.01;
+[Kf,S,P] =dlqr(A, B, Q, R);
+
+
+% Kalman Filter
+Q = 0.00001* eye(4);
 R = diag([position_variance^2, angle_variance^2]);
 P_0 = 0*eye(4,4);
 
-
-
-[Kf,Pf]=dlqr(A',C',Q,R);
-Kf = Kf';
+%% Sliding Mode Control
