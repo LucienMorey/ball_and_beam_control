@@ -9,6 +9,9 @@ Tsim=10;
 %Total simulation time
 fs = 100;
 Ts = 1/fs;
+
+upper_dead_zone = 0.1;
+lower_dead_zone =-0.1;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 1;
 %% Parameters
