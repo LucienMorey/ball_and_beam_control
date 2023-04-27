@@ -18,9 +18,9 @@ m = 0.03299; %kg
 r = 0.01; %m
 g = 9.81; %m/s^2
 J_b = 2/5*m*r^2; %kg*m^2
-k_theta = -0;
-k_theta_dot = -47.66;
-k_v = 13.6;
+k_theta = 0;
+k_theta_dot = -84.45;
+k_v = 20.83;
 
 position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
@@ -100,21 +100,21 @@ po_discrete = exp(po_cont * Ts);
 
 disp('SFC DT')
 
-K = place(A,B,p_discrete);
+K = place(A,B,p_discrete)
 
-disp('poles before placement');
-disp(po_discrete);
-disp('poles after placement');
-disp(eig(A-B*K));
+% disp('poles before placement');
+% disp(po_discrete);
+% disp('poles after placement');
+% disp(eig(A-B*K));
 
 disp('LO DT')
 
-L = place(A',C',po_discrete)';
+L = place(A',C',po_discrete)'
 
-disp('poles before placement');
-disp(p_discrete);
-disp('poles after placement');
-disp(eig(A-L*C));
+% disp('poles before placement');
+% disp(p_discrete);
+% disp('poles after placement');
+% disp(eig(A-L*C));
 
 
 %% Observer

@@ -229,8 +229,8 @@ void Controller(void)
   out4 = driveVoltageToDAC(u_k(0, 0));
 
   // Update state estimate
-  x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
-  // x_hat_k = kalman_filter->filter(u_k, z_k);
+  // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
+  x_hat_k = kalman_filter->filter(u_k, z_k);
 
   Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
                 u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,

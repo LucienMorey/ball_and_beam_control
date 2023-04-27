@@ -1,4 +1,4 @@
-%% Initialise estimate system
+%% Initialise estimate system, from black box parameter estimation
 k_theta_0 = -0;
 k_theta_dot_0 = -113.1;
 k_v_0 = 28.31;
