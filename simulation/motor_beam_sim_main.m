@@ -14,6 +14,7 @@ upper_dead_zone = 0.1;
 lower_dead_zone =-0.1;
 % if obs = 1 then the kalman filter will be used for control calculations
 OBS = 1;
+noise = 0; %set 0 or 1, nothing else!
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
