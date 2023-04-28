@@ -25,6 +25,7 @@
 #include "kalman_filter.hpp"
 #include "luenberger_observer.hpp"
 #include "state_feedback_controller.hpp"
+#include "lqr_controller.hpp"
 #include "conversions.h"
 #include "controller_state.h"
 #include <memory>
@@ -76,6 +77,7 @@ Eigen::Matrix<double, state_dimension, 1> x_hat_k;
 std::unique_ptr<KalmanFilter<state_dimension, control_dimension, output_dimension>> kalman_filter;
 std::unique_ptr<LuenbergerObserver<state_dimension, control_dimension, output_dimension>> luenberger_observer;
 std::unique_ptr<StateFeedbackController<state_dimension, control_dimension>> state_feedback_controller;
+std::unique_ptr<LqrController<state_dimension, control_dimension>> lqr_controller;
 
 ControllerState last_controller_state = STOPPED;
 ControllerState current_controller_state = STOPPED;
@@ -112,6 +114,12 @@ Eigen::Matrix<double, output_dimension, output_dimension> kalman_R;
 Eigen::Matrix<double, state_dimension, state_dimension> P_0;
 //  initial observer estimate
 Eigen::Matrix<double, state_dimension, 1> x_hat_0;
+
+// LQR params
+Eigen::Matrix<double, state_dimension, state_dimension> lqr_Q;
+Eigen::Matrix<double, control_dimension, control_dimension> lqr_R;
+const double lqr_max_error = 0.1;
+const uint32_t lqr_max_iterations = 100000;
 
 //___________________________________________________________________________
 //
@@ -162,12 +170,17 @@ void setup()
 
   P_0 = Eigen::MatrixXd::Identity(state_dimension, state_dimension);
 
+  lqr_Q = C.transpose() * C;
+  lqr_R << 0.5;
+
   x_hat_k = x_hat_0;
   u_ref << 0.0;
 
   kalman_filter = std::make_unique<KalmanFilter<state_dimension, control_dimension, output_dimension>>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
   luenberger_observer = std::make_unique<LuenbergerObserver<state_dimension, control_dimension, output_dimension>>(A, B, C, L, x_hat_0);
   state_feedback_controller = std::make_unique<StateFeedbackController<state_dimension, control_dimension>>(K_SFC);
+  lqr_controller = std::make_unique<LqrController<state_dimension, control_dimension>>(A, B, lqr_Q, lqr_R, lqr_max_error, lqr_max_iterations);
+
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(A3, OUTPUT);
@@ -219,7 +232,8 @@ void Controller(void)
   z_k = {adcToBallPosition(in4), adcToBeamAngleRads(in3)};
 
   // Control Algorithim
-  auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
