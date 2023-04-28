@@ -127,23 +127,23 @@ void setup()
 
   A << 1.0000, 0.0100, -0.0004, -0.0000,
       0, 1.0000, -0.0701, -0.0003,
-      0, 0, 1.0000, 0.0080,
-      0, 0, 0, 0.6209;
+      0, 0, 1.0000, 0.0068,
+      0, 0, 0, 0.4298;
 
   B << 0.0000,
       -0.0000,
       0.0006,
-      0.1082;
+      0.1406;
 
   C << 1.0, 0.0, 0.0, 0.0,
       0.0, 0.0, 1.0, 0.0;
 
-  K_SFC << -2.8604, -2.9710, 11.9944, -1.6166;
+  K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
 
-  L << 0.4241, 0.0252,
-      2.9513, -0.0946,
-      0.5623, 0.0877,
-      1.1282, -0.6187;
+  L << 0.4418, 0.0081,
+      1.9321, 0.2999,
+      -0.3381, -0.1212,
+      8.7047, 13.3221;
 
   x_ref << -0.2,
       0.0,
@@ -229,8 +229,8 @@ void Controller(void)
   out4 = driveVoltageToDAC(u_k(0, 0));
 
   // Update state estimate
-  x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
-  // x_hat_k = kalman_filter->filter(u_k, z_k);
+  // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
+  x_hat_k = kalman_filter->filter(u_k, z_k);
 
   Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
                 u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,

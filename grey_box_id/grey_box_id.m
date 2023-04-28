@@ -1,4 +1,4 @@
-%% Initialise estimate system
+%% Initialise estimate system, from black box parameter estimation
 k_theta_0 = -0;
 k_theta_dot_0 = -113.1;
 k_v_0 = 28.31;
@@ -24,10 +24,15 @@ beamAngle = data.Var3;
 ts = data.Var1(2) - data.Var1(1);
 Fs = 1/ts;
 
+%extract small set of sample to account for offset from 0 for input voltage
+first_bit = inputVoltage(1:50);
+inputVoltage_avg = mean(first_bit);
+inputVoltage = inputVoltage - inputVoltage_avg;
+
 % convert to radians
 beamAngle_rads =  0.018152* beamAngle + 0.012149 ; % Beam Angle = 0.018152 * Signal + 0.012149 
 
-%extract small set of sample to account for offset from 0
+%extract small set of sample to account for offset from 0 for beam angle
 first_bit = beamAngle_rads(1:50);
 beam_avg = mean(first_bit);
 beamAngle_avg = beamAngle_rads - beam_avg;
