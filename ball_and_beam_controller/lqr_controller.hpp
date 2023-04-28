@@ -48,6 +48,8 @@ public:
         return K_;
     }
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
 private:
     state_matrix_t solve_dare(const state_matrix_t &A, const control_matrix_t &B, const state_penalty_matrix_t &Q, const control_penalty_matrix_t &R)
     {
