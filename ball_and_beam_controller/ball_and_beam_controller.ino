@@ -251,6 +251,7 @@ void Controller(void)
   x_hat_k = kalman_filter->filter(u_k, z_k);
 
   std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
+  // std::cout << "last controller gain " << lqr_controller->get_last_gain_matrix().format(CleanFmt) << std::endl;
 
   // Board Outputs
   analogWrite(OUT4, out4);
