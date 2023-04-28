@@ -29,10 +29,14 @@
 #include "conversions.h"
 #include "controller_state.h"
 #include <memory>
+#include <iostream>
 
 #define fs 100                  // Sampling frequency [Hz] , Ts = 1/fs [s]
 float Ts = 1 / float(fs);       // Sampling Time Ts=1/fs [s] in seconds
 int Ts_m = (int)(Ts * 1000000); // Must multiply Ts by 1000000!
+
+// Formatting options for matrices
+Eigen::IOFormat CleanFmt(3, 0, ", ", "\n", "[", "]");
 
 // Input Pins
 // DO NOT CHANGE!!
@@ -246,9 +250,7 @@ void Controller(void)
   // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
   x_hat_k = kalman_filter->filter(u_k, z_k);
 
-  Serial.printf("u_k %f, pos %f, angle %f, x_hat_k, %f, %f, %f, %f,\n",
-                u_k, z_k(0, 0), z_k(1, 0) * 180 / M_PI, x_hat_k(0, 0), x_hat_k(1, 0), x_hat_k(2, 0) * 180 / M_PI,
-                x_hat_k(3, 0) * 180 / M_PI);
+  std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
 
   // Board Outputs
   analogWrite(OUT4, out4);
