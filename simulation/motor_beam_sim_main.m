@@ -129,7 +129,7 @@ L = place(A',C',po_discrete)'
 
 %LQR
 Q_lqr = diag([1,1,15,20]);
-R_lqr = 0.01;
+R_lqr = 0.1;
 [Kf,S,P] =dlqr(A, B, Q_lqr, R_lqr);
 
 % Kalman Filter
@@ -139,18 +139,17 @@ P_0 = 0*eye(4,4);
 
 %% Integral Action
 
-A_augmented = [A zeros(size(A,1),size(C,1));
-               -C zeros(size(C,1))];
+A_augmented = [A zeros(4,1);
+               [1 0 0 0] 1]; % integral action only for ball position error
 
 B_augmented = [B;
-               zeros(size(C,1)',size(B,2))];
+               0];
 
 %LQR
-Q_lqr = diag([1, 1, 15, 20, 100, 5]);
-R_lqr = 0.01;
+Q_lqr = diag([10, 5, 1, 1, 0.01]);
+R_lqr = 0.0001;
 [Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
-%% Sliding Mode Control
 
 %% Run Simulation
-sim('motor_beam_model_sim.slx');
+% sim('motor_beam_model_sim.slx');
