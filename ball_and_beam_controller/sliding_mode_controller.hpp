@@ -16,7 +16,7 @@ class SlidingModeController
     typedef Eigen::Matrix<double, control_dimension, state_dimension> gain_matrix_t;
 
 public:
-    SlidingModeController(state_matrix_t A, control_matrix_t B, surface_matrix_t Cs, double gamma)
+    SlidingModeController(state_matrix_t A, control_matrix_t B, surface_matrix_t Cs, double gamma_sm)
     {
         A_ = A;
         B_ = B;
@@ -24,10 +24,10 @@ public:
 
         K_ = (Cs * B).inverse() * Cs * A;
 
-        state_dimension_ = state_dimension;
-        control_dimension_ = control_dimension;
+        // state_dimension_ = state_dimension;
+        // control_dimension_ = control_dimension;
 
-        gamma_ = gamma;
+        gamma_sm_ = gamma_sm;
     }
     ~SlidingModeController() {}
 
@@ -35,9 +35,9 @@ public:
     {
 
         state_vector_t x_e = x_k - x_ref;
-        Eigen::Matrix<double, control_dimension_, 1> Sx = Cs_ * x_e;
+        Sx_ = Cs_ * x_e;
         input_vector_t ueq = -K_ * x_e;
-        input_vector_t usw = -(Cs_ * B_).inverse() * gamma_ * Sx.cwiseSign();
+        input_vector_t usw = -(Cs_ * B_).inverse() * gamma_sm_ * Sx_.cwiseSign();
 
         return ueq + usw;
     }
@@ -48,12 +48,10 @@ private:
     state_matrix_t A_;
     control_matrix_t B_;
     surface_matrix_t Cs_;
-    double gamma_;
+    double gamma_sm_;
+    input_vector_t Sx_;
 
     gain_matrix_t K_;
-
-    size_t state_dimension_;
-    size_t control_dimension_;
 };
 
 #endif
