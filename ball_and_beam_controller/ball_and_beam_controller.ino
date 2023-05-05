@@ -70,6 +70,7 @@ uint16_t out4 = 0; // Board Output 4 (+/-12V)
 const int res = 12;
 
 const size_t state_dimension = 4U;
+const size_t state_dimension_integral = 5U;
 const size_t control_dimension = 1U;
 const size_t output_dimension = 2U;
 
@@ -81,6 +82,7 @@ Eigen::Matrix<double, state_dimension, 1> x_hat_k;
 std::unique_ptr<KalmanFilter<state_dimension, control_dimension, output_dimension>> kalman_filter;
 std::unique_ptr<LuenbergerObserver<state_dimension, control_dimension, output_dimension>> luenberger_observer;
 std::unique_ptr<StateFeedbackController<state_dimension, control_dimension>> state_feedback_controller;
+std::unique_ptr<StateFeedbackController<state_dimension_integral, control_dimension>> state_feedback_controller_integral;
 std::unique_ptr<LqrController<state_dimension, control_dimension>> lqr_controller;
 
 ControllerState last_controller_state = STOPPED;
@@ -90,17 +92,26 @@ IntervalTimer myTimer;
 // Discrete State Space matrices
 Eigen::Matrix<double, state_dimension, state_dimension> A;
 Eigen::Matrix<double, state_dimension, control_dimension> B;
+Eigen::Matrix<double, state_dimension_integral, state_dimension_integral> A_integral;
+Eigen::Matrix<double, state_dimension_integral, control_dimension> B_integral;
 Eigen::Matrix<double, output_dimension, state_dimension> C;
 
 // Controller and Observer Config
 // State feedback gain
 Eigen::Matrix<double, control_dimension, state_dimension> K_SFC;
+Eigen::Matrix<double, control_dimension, state_dimension_integral> K_SFC_integral;
 
 Eigen::Matrix<double, state_dimension, output_dimension> L;
 
 // Controller reference
 Eigen::Matrix<double, state_dimension, 1>
     x_ref;
+
+Eigen::Matrix<double, state_dimension_integral, 1>
+    x_ref_integral;
+
+Eigen::Matrix<double, 1, 1>
+    q_k;
 
 Eigen::Matrix<double, control_dimension, 1> u_ref;
 
@@ -142,15 +153,28 @@ void setup()
       0, 0, 1.0000, 0.0068,
       0, 0, 0, 0.4298;
 
+  A_integral << 1.0000, 0.0100, -0.0004, -0.0000,
+      0, 0, 1.0000, -0.0701, -0.0003,
+      0, 0, 0, 1.0000, 0.0068,
+      0, 0, 0, 0, 0.4298,
+      0, 1.0000, 0, 0, 0, 1.0;
+
   B << 0.0000,
       -0.0000,
       0.0006,
       0.1406;
 
+  B_integral << -0.0000,
+      -0.0000,
+      0.0008,
+      0.1406,
+      0;
+
   C << 1.0, 0.0, 0.0, 0.0,
       0.0, 0.0, 1.0, 0.0;
 
   K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
+  K_SFC_integral << -30.5746, -14.8756, 45.9055, 3.2502, -0.2177;
 
   L << 0.4418, 0.0081,
       1.9321, 0.2999,
@@ -183,6 +207,8 @@ void setup()
   kalman_filter = std::make_unique<KalmanFilter<state_dimension, control_dimension, output_dimension>>(A, B, C, kalman_Q, kalman_R, x_hat_0, P_0);
   luenberger_observer = std::make_unique<LuenbergerObserver<state_dimension, control_dimension, output_dimension>>(A, B, C, L, x_hat_0);
   state_feedback_controller = std::make_unique<StateFeedbackController<state_dimension, control_dimension>>(K_SFC);
+  state_feedback_controller_integral = std::make_unique<StateFeedbackController<state_dimension_integral, control_dimension>>(K_SFC_integral);
+
   lqr_controller = std::make_unique<LqrController<state_dimension, control_dimension>>(A, B, lqr_Q, lqr_R, lqr_max_error, lqr_max_iterations);
 
   // Initialize I/O pins to measure execution time
@@ -235,9 +261,16 @@ void Controller(void)
   // Output Measurement
   z_k = {adcToBallPosition(in4), adcToBeamAngleRads(in3)};
 
+  Eigen::Matrix<double, 5, 1> x_hat_k_integral;
+  x_hat_k_integral << x_hat_k, q_k;
+
+  Eigen::Matrix<double, 5, 1> x_ref_integral;
+  x_ref_integral << x_ref, 0;
+
   // Control Algorithim
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
@@ -249,6 +282,13 @@ void Controller(void)
   // Update state estimate
   // x_hat_k = luenberger_observer->compute_observation(u_k, z_k);
   x_hat_k = kalman_filter->filter(u_k, z_k);
+
+  Eigen::Matrix<double, 1, 1> y_hat_k;
+  y_hat_k << (C * x_hat_k)(0, 0);
+  Eigen::Matrix<double, 1, 1> y_ref;
+  y_ref << (C * x_ref)(0, 0);
+
+  q_k = q_k + y_hat_k - y_ref;
 
   std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
   // std::cout << "last controller gain " << lqr_controller->get_last_gain_matrix().format(CleanFmt) << std::endl;
