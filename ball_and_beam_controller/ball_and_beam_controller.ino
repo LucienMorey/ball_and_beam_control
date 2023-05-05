@@ -184,7 +184,7 @@ void setup()
       0.0, 0.0, 1.0, 0.0;
 
   K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
-  K_SFC_integral << -30.5746, -14.8756, 45.9055, 3.2502, -0.2177;
+  K_SFC_integral << -2.2001, -2.2845, 9.2207, -2.6050, -0.004;
 
   L << 0.4418, 0.0081,
       1.9321, 0.2999,
@@ -196,7 +196,7 @@ void setup()
       0.0,
       0.0;
 
-  x_hat_0 << 0.45,
+  x_hat_0 << 0.3,
       0.0,
       0.0,
       0.0;
@@ -211,8 +211,9 @@ void setup()
   lqr_Q = C.transpose() * C;
   lqr_R << 0.5;
 
-  lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 1, 10, 15, 0.0000001);
-  lqr_R_integral << 0.1;
+  // lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 1, 10, 15, 0.0);
+  lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 0, 1, 0, 0.000012);
+  lqr_R_integral << 0.5;
 
   Cs << -1, -1.5, 5, 1;
 
@@ -287,9 +288,9 @@ void Controller(void)
   // Control Algorithim
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
   // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
-  auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
@@ -309,9 +310,11 @@ void Controller(void)
 
   q_k = q_k + y_hat_k - y_ref;
 
-  std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
-  std::cout << "last controller gain " << lqr_controller_integral->get_last_gain_matrix().format(CleanFmt) << std::endl;
-  std::cout << "q_K" << q_k.transpose().format(CleanFmt) << std::endl;
+  // std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
+  // std::cout << "last controller gain " << lqr_controller_integral->get_last_gain_matrix().format(CleanFmt) << std::endl;
+  // std::cout << "q_K" << q_k.transpose().format(CleanFmt) << std::endl;
+
+  Serial.printf("BALL POSITION %f, BEAM ANGLE %f, DAC OUTPUT %d\n", x_hat_k(0, 0), x_hat_k(2, 0), driveVoltageToDAC(u_k(0, 0)));
 
   // Board Outputs
   analogWrite(OUT4, out4);
