@@ -24,9 +24,6 @@ public:
 
         K_ = (Cs * B).inverse() * Cs * A;
 
-        // state_dimension_ = state_dimension;
-        // control_dimension_ = control_dimension;
-
         gamma_sm_ = gamma_sm;
     }
     ~SlidingModeController() {}
