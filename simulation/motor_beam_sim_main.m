@@ -9,8 +9,24 @@ Tsim=10;
 %Total simulation time
 fs = 100;
 Ts = 1/fs;
-% if obs = 1 then the kalman filter will be used for control calculations
-OBS = 1;
+
+% voltage input dead zone for system [upper, lower]
+dead_zone = [0.0, -0.0];
+
+% voltage input limit [upper, lower]
+input_limit = [10, -10];
+
+CTLR = 3; % 0: Open Loop
+          % 1: State Feedback
+          % 2: LQR
+          % 3: LQR + integral action
+
+OBS = 1; % 0: No observer
+         % 1: observer
+
+sensor_noise = 1; %set 0 or 1, nothing else!
+input_noise = 1;
+
 %% Parameters
 length = 0.91; %m
 height = 0.32; %M
@@ -25,18 +41,13 @@ k_v = 20.83;
 position_variance = 1.1212 / 100.0;
 angle_variance = 0.0045;
 voltage_noise =1e-6;
-  
-p_0 = 0.4; %m
-p_dot_0 = 0.0; %m/s
-theta_0 = 0.0; %rad
-theta_dot_0 = 0.0; %rad/s
 
-p_hat_0 = 0.4; %m
-p_dot_hat_0 = 0.0; %m/s
-theta_hat_0 = 0* pi/180; %rad
-theta_dot_hat_0 = 0.0; %rad/s
+% initial states [p (m), p_dot (m/s), theta (rads), theta_dot (rads/s)]
+xo = [0.4 0.0 0.0 0.0]';
+xo_hat = [0.4 0.0 0.0 0.0]'; 
+
 %% Continuous-time Model 
-% = [p p_dot theta theta_dot]'
+% x = [p p_dot theta theta_dot]'
 Ac = [0, 1, 0, 0;
       0, 0, -(m*g)/((J_b/(r^2))+m), 0;
       0, 0, 0, 1;
@@ -80,17 +91,15 @@ B=d_sys.B
 C=d_sys.C
 D=d_sys.D;
 disp(' ')
-%% State Feedback
+
+%% State Feedback + Luenberger
+
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system
 overshoot = 0.07;
 settling_time = 4;
 
-zeta = sqrt((log(overshoot)^2)/((pi^2)+log(overshoot)^2));
-%zeta= 1.2*zeta;
-w_n = 4/(settling_time*zeta);
-p1 = -zeta*w_n + w_n*sqrt(zeta^2-1);
-p2 = -zeta*w_n - w_n*sqrt(zeta^2-1);
+[p1, p2] = second_order_poles(overshoot, settling_time);
 
 p_cont = [p1; p2; 10*real(p1); 10.1*real(p1)];
 p_discrete = exp(p_cont * Ts);
@@ -98,7 +107,7 @@ p_discrete = exp(p_cont * Ts);
 po_cont = 5*p_cont;
 po_discrete = exp(po_cont * Ts);
 
-disp('SFC DT')
+disp('SFC:')
 
 K = place(A,B,p_discrete)
 
@@ -116,13 +125,31 @@ L = place(A',C',po_discrete)'
 % disp('poles after placement');
 % disp(eig(A-L*C));
 
+%% LQR + Kalman Filter
 
-%% Observer
+%LQR
+Q_lqr = diag([1,1,15,20]);
+R_lqr = 0.1;
+[Kf,S,P] =dlqr(A, B, Q_lqr, R_lqr);
+
+% Kalman Filter
 Q = 1e-10* eye(4);
 R = diag([position_variance^2, angle_variance^2]);
 P_0 = 0*eye(4,4);
 
+%% Integral Action
+
+A_augmented = [A zeros(4,1);
+               [1 0 0 0] 1]; % integral action only for ball position error
+
+B_augmented = [B;
+               0];
+
+%LQR
+Q_lqr = diag([10, 5, 1, 1, 0.01]);
+R_lqr = 0.0001;
+[Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
 
-[Kf,Pf]=dlqr(A',C',Q,R);
-Kf = Kf';
+%% Run Simulation
+% sim('motor_beam_model_sim.slx');
