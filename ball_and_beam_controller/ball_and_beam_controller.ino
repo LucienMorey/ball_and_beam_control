@@ -84,6 +84,7 @@ std::unique_ptr<LuenbergerObserver<state_dimension, control_dimension, output_di
 std::unique_ptr<StateFeedbackController<state_dimension, control_dimension>> state_feedback_controller;
 std::unique_ptr<StateFeedbackController<state_dimension_integral, control_dimension>> state_feedback_controller_integral;
 std::unique_ptr<LqrController<state_dimension, control_dimension>> lqr_controller;
+std::unique_ptr<LqrController<state_dimension_integral, control_dimension>> lqr_controller_integral;
 
 ControllerState last_controller_state = STOPPED;
 ControllerState current_controller_state = STOPPED;
@@ -133,6 +134,8 @@ Eigen::Matrix<double, state_dimension, 1> x_hat_0;
 // LQR params
 Eigen::Matrix<double, state_dimension, state_dimension> lqr_Q;
 Eigen::Matrix<double, control_dimension, control_dimension> lqr_R;
+Eigen::Matrix<double, state_dimension_integral, state_dimension_integral> lqr_Q_integral;
+Eigen::Matrix<double, control_dimension, control_dimension> lqr_R_integral;
 const double lqr_max_error = 0.1;
 const uint32_t lqr_max_iterations = 100000;
 
@@ -201,6 +204,9 @@ void setup()
   lqr_Q = C.transpose() * C;
   lqr_R << 0.5;
 
+  lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 1, 10, 15, 0.0000001);
+  lqr_R_integral << 0.1;
+
   x_hat_k = x_hat_0;
   u_ref << 0.0;
 
@@ -210,6 +216,7 @@ void setup()
   state_feedback_controller_integral = std::make_unique<StateFeedbackController<state_dimension_integral, control_dimension>>(K_SFC_integral);
 
   lqr_controller = std::make_unique<LqrController<state_dimension, control_dimension>>(A, B, lqr_Q, lqr_R, lqr_max_error, lqr_max_iterations);
+  lqr_controller_integral = std::make_unique<LqrController<state_dimension_integral, control_dimension>>(A_integral, B_integral, lqr_Q_integral, lqr_R_integral, lqr_max_error, lqr_max_iterations);
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
@@ -270,6 +277,7 @@ void Controller(void)
   // Control Algorithim
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
   auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // saturate control action
