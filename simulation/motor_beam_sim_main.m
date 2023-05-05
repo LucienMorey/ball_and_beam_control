@@ -16,10 +16,11 @@ dead_zone = [0.0, -0.0];
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 3; % 0: Open Loop
+CTLR = 4; % 0: Open Loop
           % 1: State Feedback
           % 2: LQR
           % 3: LQR + integral action
+          % 4: Sliding Mode Control
 
 OBS = 1; % 0: No observer
          % 1: observer
@@ -150,6 +151,10 @@ Q_lqr = diag([10, 5, 1, 1, 0.01]);
 R_lqr = 0.0001;
 [Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
+%% Sliding Mode Control
+
+Cs = [-1 -1.5 5 1];
+gamma = 0.4;
 
 %% Run Simulation
 % sim('motor_beam_model_sim.slx');
