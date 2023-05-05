@@ -26,6 +26,7 @@
 #include "luenberger_observer.hpp"
 #include "state_feedback_controller.hpp"
 #include "lqr_controller.hpp"
+#include "sliding_mode_controller.hpp"
 #include "conversions.h"
 #include "controller_state.h"
 #include <memory>
@@ -85,6 +86,7 @@ std::unique_ptr<StateFeedbackController<state_dimension, control_dimension>> sta
 std::unique_ptr<StateFeedbackController<state_dimension_integral, control_dimension>> state_feedback_controller_integral;
 std::unique_ptr<LqrController<state_dimension, control_dimension>> lqr_controller;
 std::unique_ptr<LqrController<state_dimension_integral, control_dimension>> lqr_controller_integral;
+std::unique_ptr<SlidingModeController<state_dimension, control_dimension>> sliding_mode_controller;
 
 ControllerState last_controller_state = STOPPED;
 ControllerState current_controller_state = STOPPED;
@@ -138,6 +140,10 @@ Eigen::Matrix<double, state_dimension_integral, state_dimension_integral> lqr_Q_
 Eigen::Matrix<double, control_dimension, control_dimension> lqr_R_integral;
 const double lqr_max_error = 0.1;
 const uint32_t lqr_max_iterations = 100000;
+
+// Sliding Mode params
+const double gamma_sm = 0.4;
+Eigen::Matrix<double, control_dimension, state_dimension> Cs;
 
 //___________________________________________________________________________
 //
@@ -207,6 +213,8 @@ void setup()
   lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 1, 10, 15, 0.0000001);
   lqr_R_integral << 0.1;
 
+  Cs << -1, -1.5, 5, 1;
+
   x_hat_k = x_hat_0;
   u_ref << 0.0;
 
@@ -217,6 +225,7 @@ void setup()
 
   lqr_controller = std::make_unique<LqrController<state_dimension, control_dimension>>(A, B, lqr_Q, lqr_R, lqr_max_error, lqr_max_iterations);
   lqr_controller_integral = std::make_unique<LqrController<state_dimension_integral, control_dimension>>(A_integral, B_integral, lqr_Q_integral, lqr_R_integral, lqr_max_error, lqr_max_iterations);
+  sliding_mode_controller = std::make_unique<SlidingModeController<state_dimension, control_dimension>>(A, B, Cs, gamma_sm);
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
@@ -278,7 +287,8 @@ void Controller(void)
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
-  auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
