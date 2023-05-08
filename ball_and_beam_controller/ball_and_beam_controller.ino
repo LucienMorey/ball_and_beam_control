@@ -143,6 +143,7 @@ const uint32_t lqr_max_iterations = 100000;
 
 // Sliding Mode params
 const double gamma_sm = 0.4;
+const double k = 0.5;
 Eigen::Matrix<double, control_dimension, state_dimension> Cs;
 
 //___________________________________________________________________________
@@ -225,7 +226,7 @@ void setup()
 
   lqr_controller = std::make_unique<LqrController<state_dimension, control_dimension>>(A, B, lqr_Q, lqr_R, lqr_max_error, lqr_max_iterations);
   lqr_controller_integral = std::make_unique<LqrController<state_dimension_integral, control_dimension>>(A_integral, B_integral, lqr_Q_integral, lqr_R_integral, lqr_max_error, lqr_max_iterations);
-  sliding_mode_controller = std::make_unique<SlidingModeController<state_dimension, control_dimension>>(A, B, Cs, gamma_sm);
+  sliding_mode_controller = std::make_unique<SlidingModeController<state_dimension, control_dimension>>(A, B, Cs, gamma_sm, k);
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
