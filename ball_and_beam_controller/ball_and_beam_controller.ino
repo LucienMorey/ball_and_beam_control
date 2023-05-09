@@ -139,7 +139,7 @@ Eigen::Matrix<double, control_dimension, control_dimension> lqr_R;
 Eigen::Matrix<double, state_dimension_integral, state_dimension_integral> lqr_Q_integral;
 Eigen::Matrix<double, control_dimension, control_dimension> lqr_R_integral;
 const double lqr_max_error = 0.1;
-const uint32_t lqr_max_iterations = 100000;
+const uint32_t lqr_max_iterations = 400;
 
 // Sliding Mode params
 const double gamma_sm = 0.4;
