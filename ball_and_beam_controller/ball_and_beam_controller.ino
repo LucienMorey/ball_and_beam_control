@@ -216,6 +216,9 @@ void setup()
   lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(20, 8, 10, 1, 0.00001);
   lqr_R_integral << 0.01;
 
+  // This controller was required to avoid long computation time when using the recursive lqr class. These precumputed gains were calculated from:
+  // lqr_Q_integral = diag(20, 8, 10, 1, 0.00001)
+  // lqr_R_integral = 0.01
   K_LQR_INTEGRAL_SFC << -26.0651, -24.6003, 49.8412, 2.3601, -0.0172;
 
   Cs << -1, -1.5, 5, 1;
