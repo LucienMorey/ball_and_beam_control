@@ -16,12 +16,13 @@ dead_zone = [0.0, -0.0];
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 2; % 0: Open Loop
+CTLR = 6; % 0: Open Loop
           % 1: State Feedback
           % 2: State Feedback + integral action
           % 3: LQR
           % 4: LQR + integral action
           % 5: Sliding Mode Control
+          % 6: Sliding Mode Control + integral action
 
 OBS = 1; % 0: No observer
          % 1: observer
@@ -164,7 +165,12 @@ K_sfc_integral_action = place(A_augmented,B_augmented,p_discrete_integral)
 
 %% Sliding Mode Control
 
-Cs = [-1 -1.5 5 1];
+Cs = [-1 -1.5 5 0.4];
+gamma = 0.4;
+
+%% Sliding Mode with integral action
+
+Cs_integral_action = [-1 -1.5 5 1 1];
 gamma = 0.4;
 
 %% Run Simulation
