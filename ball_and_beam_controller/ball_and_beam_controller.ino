@@ -186,7 +186,7 @@ void setup()
       0.0, 0.0, 1.0, 0.0;
 
   K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
-  K_SFC_integral << -30.5746, -14.8756, 45.9055, 3.2502, -0.2177;
+  K_SFC_integral << -2.4284,   -2.4148,   9.3610,  -2.5987,   -0.0022;
 
   L << 0.4418, 0.0081,
       1.9321, 0.2999,
@@ -296,12 +296,12 @@ void Controller(void)
   // Control Algorithim
   // POLE PLACEMENT CONTROLLERS
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // OPTIMAL CONTROLLERS
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
-  auto u_k = lqr_integral_sfc_controller->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  // auto u_k = lqr_integral_sfc_controller->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // SLIDING MODE CONTROLLERS
   // auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
