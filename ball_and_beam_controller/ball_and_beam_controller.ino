@@ -291,11 +291,16 @@ void Controller(void)
   x_ref_integral << x_ref, 0;
 
   // Control Algorithim
+  // POLE PLACEMENT CONTROLLERS
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+
+  // OPTIMAL CONTROLLERS
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
   // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
-  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
   auto u_k = lqr_integral_sfc_controller->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+
+  // SLIDING MODE CONTROLLERS
   // auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
 
   // saturate control action
