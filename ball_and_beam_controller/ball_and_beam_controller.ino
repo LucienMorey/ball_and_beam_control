@@ -211,8 +211,8 @@ void setup()
   lqr_Q = C.transpose() * C;
   lqr_R << 0.5;
 
-  lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(1, 1, 10, 15, 0.0000001);
-  lqr_R_integral << 0.1;
+  lqr_Q_integral = Eigen::DiagonalMatrix<double, 5>(20, 8, 10, 1, 0.00001);
+  lqr_R_integral << 0.01;
 
   Cs << -1, -1.5, 5, 1;
 
