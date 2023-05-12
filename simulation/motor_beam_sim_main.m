@@ -170,7 +170,7 @@ gamma = 0.4;
 
 %% Sliding Mode with integral action
 
-Cs_integral_action = [-1 -1.5 5 0.5];
+Cs_integral_action = [-1 -1.2 5 0.5];
 gamma_integral_action = 0.4;
 
 %% Run Simulation
