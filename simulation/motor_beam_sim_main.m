@@ -16,7 +16,7 @@ dead_zone = [0.0, -0.0];
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 4; % 0: Open Loop
+CTLR = 3; % 0: Open Loop
           % 1: State Feedback
           % 2: LQR
           % 3: LQR + integral action
@@ -129,7 +129,7 @@ L = place(A',C',po_discrete)'
 %% LQR + Kalman Filter
 
 %LQR
-Q_lqr = diag([1,1,15,20]);
+Q_lqr = diag([15,20,40,1]);
 R_lqr = 0.1;
 [Kf,S,P] =dlqr(A, B, Q_lqr, R_lqr);
 
@@ -147,8 +147,8 @@ B_augmented = [B;
                0];
 
 %LQR
-Q_lqr = diag([10, 5, 1, 1, 0.01]);
-R_lqr = 0.0001;
+Q_lqr = diag([20, 8, 10, 1, 0.00001]);
+R_lqr = 0.01;
 [Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
 %% Sliding Mode Control
