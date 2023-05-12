@@ -151,6 +151,16 @@ Q_lqr = diag([20, 8, 10, 1, 0.00001]);
 R_lqr = 0.01;
 [Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
+%% SFC with integral action
+
+p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -1];
+p_discrete_integral = exp(p_cont_integral * Ts);
+
+disp('SFC with integral action:')
+
+K_sfc_integral_action = place(A_augmented,B_augmented,p_discrete_integral)
+
+
 %% Sliding Mode Control
 
 Cs = [-1 -1.5 5 1];
