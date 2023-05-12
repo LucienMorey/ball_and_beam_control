@@ -12,15 +12,17 @@ r = 0.01; %m
 g = 9.81; %m/s^2
 J_b = 2/5*m*r^2; %kg*m^2
 
-a = 47.66;
-b = 13.6;
+k_theta = 0;
+k_theta_dot = -84.45;
+k_v = 20.83;
+
 %% Continuous-time Model 
 % = [p p_dot theta theta_dot]'
 Ac = [0, 1, 0, 0;
       0, 0, -(m*g)/((J_b/(r^2))+m), 0;
       0, 0, 0, 1;
-      0, 0, 0, -a];
-Bc = [0 0 0 b]';
+      0, 0, k_theta, k_theta_dot];
+Bc = [0 0 0 k_v]';
 Cc = [1 0 0 0;
       0 0 1 0];
 Dc = 0;
