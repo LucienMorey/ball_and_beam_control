@@ -154,7 +154,7 @@ R_lqr = 0.01;
 
 %% SFC with integral action
 
-p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -0.01];
+p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -0.1];
 p_discrete_integral = exp(p_cont_integral * Ts);
 
 disp('SFC with integral action:')
