@@ -165,13 +165,13 @@ K_sfc_integral_action = place(A_augmented,B_augmented,p_discrete_integral)
 
 %% Sliding Mode Control
 
-Cs = [-1 -1.5 5 0.4];
+Cs = [-1 -1.5 5 1];
 gamma = 0.4;
 
 %% Sliding Mode with integral action
 
-Cs_integral_action = [-1 -1.5 5 1 1];
-gamma = 0.4;
+Cs_integral_action = [-1 -1.5 5 0.5];
+gamma_integral_action = 0.4;
 
 %% Run Simulation
 % sim('motor_beam_model_sim.slx');
