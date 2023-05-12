@@ -16,11 +16,12 @@ dead_zone = [0.0, -0.0];
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
 
-CTLR = 3; % 0: Open Loop
+CTLR = 2; % 0: Open Loop
           % 1: State Feedback
-          % 2: LQR
-          % 3: LQR + integral action
-          % 4: Sliding Mode Control
+          % 2: State Feedback + integral action
+          % 3: LQR
+          % 4: LQR + integral action
+          % 5: Sliding Mode Control
 
 OBS = 1; % 0: No observer
          % 1: observer
@@ -153,7 +154,7 @@ R_lqr = 0.01;
 
 %% SFC with integral action
 
-p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -1];
+p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -0.01];
 p_discrete_integral = exp(p_cont_integral * Ts);
 
 disp('SFC with integral action:')
