@@ -87,6 +87,7 @@ std::unique_ptr<StateFeedbackController<state_dimension_integral, control_dimens
 std::unique_ptr<LqrController<state_dimension, control_dimension>> lqr_controller;
 std::unique_ptr<LqrController<state_dimension_integral, control_dimension>> lqr_controller_integral;
 std::unique_ptr<SlidingModeController<state_dimension, control_dimension>> sliding_mode_controller;
+std::unique_ptr<SlidingModeController<state_dimension_integral, control_dimension>> sliding_mode_controller_integral;
 std::unique_ptr<StateFeedbackController<state_dimension_integral, control_dimension>> lqr_integral_sfc_controller;
 
 ControllerState last_controller_state = STOPPED;
@@ -144,9 +145,10 @@ const uint32_t lqr_max_iterations = 600;
 Eigen::Matrix<double, control_dimension, state_dimension_integral> K_LQR_INTEGRAL_SFC;
 
 // Sliding Mode params
-const double gamma_sm = 0.4;
-const double k = 0.5;
+const double gamma_sm = 0.8;
+const double k = 1.0;
 Eigen::Matrix<double, control_dimension, state_dimension> Cs;
+Eigen::Matrix<double, control_dimension, state_dimension_integral> Cs_integral;
 
 //___________________________________________________________________________
 //
@@ -222,6 +224,7 @@ void setup()
   K_LQR_INTEGRAL_SFC << -26.0651, -24.6003, 49.8412, 2.3601, -0.0172;
 
   Cs << -1, -1.5, 5, 1;
+  Cs_integral << -1.1, -1.7, 2.92, 1.1, -0.00125;
 
   x_hat_k = x_hat_0;
   u_ref << 0.0;
@@ -236,6 +239,7 @@ void setup()
   lqr_integral_sfc_controller = std::make_unique<StateFeedbackController<state_dimension_integral, control_dimension>>(K_LQR_INTEGRAL_SFC);
 
   sliding_mode_controller = std::make_unique<SlidingModeController<state_dimension, control_dimension>>(A, B, Cs, gamma_sm, k);
+  sliding_mode_controller_integral = std::make_unique<SlidingModeController<state_dimension_integral, control_dimension>>(A_integral, B_integral, Cs_integral, gamma_sm, k);
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
@@ -296,7 +300,7 @@ void Controller(void)
   // Control Algorithim
   // POLE PLACEMENT CONTROLLERS
   // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // OPTIMAL CONTROLLERS
   // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
@@ -305,6 +309,7 @@ void Controller(void)
 
   // SLIDING MODE CONTROLLERS
   // auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+  auto u_k = sliding_mode_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
