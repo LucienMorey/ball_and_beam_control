@@ -11,7 +11,7 @@ fs = 100;
 Ts = 1/fs;
 
 % voltage input dead zone for system [upper, lower]
-dead_zone = [0.0, -0.0];
+dead_zone = [0.1, -0.1];
 
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
