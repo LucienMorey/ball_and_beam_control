@@ -99,8 +99,8 @@ disp(' ')
 
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system
-overshoot = 0.07;
-settling_time = 4;
+overshoot = 0.000005;
+settling_time = 2.5;
 
 [p1, p2] = second_order_poles(overshoot, settling_time);
 
@@ -155,7 +155,7 @@ R_lqr = 0.01;
 
 %% SFC with integral action
 
-p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -0.1];
+p_cont_integral = [p1; p2; 10*real(p1); 10.1*real(p1); -0.15];
 p_discrete_integral = exp(p_cont_integral * Ts);
 
 disp('SFC with integral action:')
