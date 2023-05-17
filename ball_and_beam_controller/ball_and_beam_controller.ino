@@ -75,6 +75,8 @@ const size_t state_dimension_integral = 5U;
 const size_t control_dimension = 1U;
 const size_t output_dimension = 2U;
 
+int active_controller = 0;
+
 // forward_dec vars
 Eigen::Matrix<double, output_dimension, 1> z_k;
 Eigen::Matrix<double, state_dimension, 1> x_hat_k;
@@ -188,7 +190,7 @@ void setup()
       0.0, 0.0, 1.0, 0.0;
 
   K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
-  K_SFC_integral << -7.1867,   -8.2904,   22.3119,   -1.8339,   -0.0090;
+  K_SFC_integral << -7.1867, -8.2904, 22.3119, -1.8339, -0.0090;
 
   L << 0.4418, 0.0081,
       1.9321, 0.2999,
@@ -296,20 +298,57 @@ void Controller(void)
 
   Eigen::Matrix<double, 5, 1> x_ref_integral;
   x_ref_integral << x_ref, 0;
-
+  Eigen::Matrix<double, control_dimension, 1> u_k;
   // Control Algorithim
+  switch (active_controller)
+  {
   // POLE PLACEMENT CONTROLLERS
-  // auto u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // auto u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  case 0:
+  {
+    u_k = state_feedback_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+    break;
+  }
 
-  // OPTIMAL CONTROLLERS
-  // auto u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  // auto u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
-  // auto u_k = lqr_integral_sfc_controller->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  case 1:
+  {
+    u_k = state_feedback_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+    break;
+  }
 
-  // SLIDING MODE CONTROLLERS
-  // auto u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
-  auto u_k = sliding_mode_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+  case 2:
+  {
+    u_k = lqr_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+    break;
+  }
+
+  case 3:
+  {
+    u_k = lqr_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+    break;
+  }
+
+  case 4:
+  {
+    u_k = lqr_integral_sfc_controller->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+    break;
+  }
+
+  case 5:
+  {
+    u_k = sliding_mode_controller->compute_control_input(u_ref, x_ref, x_hat_k);
+    break;
+  }
+
+  case 6:
+  {
+    u_k = sliding_mode_controller_integral->compute_control_input(u_ref, x_ref_integral, x_hat_k_integral);
+    break;
+  }
+  default:
+  {
+    Serial.printf("Not a valid controller\n");
+  }
+  }
 
   // saturate control action
   u_k(0, 0) = min(u_k(0, 0), 12.0);
@@ -330,8 +369,6 @@ void Controller(void)
   q_k = q_k + y_hat_k - y_ref;
 
   std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
-  std::cout << "last controller gain " << lqr_controller_integral->get_last_gain_matrix().format(CleanFmt) << std::endl;
-  std::cout << "q_K" << q_k.transpose().format(CleanFmt) << std::endl;
 
   // Board Outputs
   analogWrite(OUT4, out4);
@@ -350,26 +387,57 @@ void loop()
 {
   if (Serial.available() > 0)
   {
-    int user_input = Serial.read();
+    int command_input = Serial.read();
 
-    switch (user_input)
+    switch (command_input)
     {
-    case 's':
-      // Stop mode
-      current_controller_state = STOPPED;
-      Serial.println("Switching to Stopped");
-      break;
-    case 'c':
-      // control mode
-      current_controller_state = CONTROLLING;
-      Serial.println("Switching to Controlling");
-      break;
+
     case 'm':
-      // manual mode
-      current_controller_state = MANUAL;
-      Serial.println("Switching to Manual");
+    {
+      int mode_input = Serial.read();
+      if (mode_input == 's')
+      {
+        // Stop mode
+        current_controller_state = STOPPED;
+        Serial.println("Switching to Stopped");
+      }
+      else if (mode_input == 'c')
+      {
+        // control mode
+        current_controller_state = CONTROLLING;
+        Serial.println("Switching to Controlling");
+      }
+      else
+      {
+        Serial.println("input to change mode invalid");
+      }
+      break;
+    }
+
+    case 'a':
+    {
+      active_controller = Serial.parseInt();
+      break;
+    }
+    case 'r':
+    {
+      float new_pos_setpoint = Serial.parseFloat();
+
+      if ((new_pos_setpoint > -40) && (new_pos_setpoint < 40))
+      {
+        x_ref(0, 0) = new_pos_setpoint;
+      }
+      else
+      {
+        Serial.printf("Please provide a valid position setpoint\n");
+      }
+      break;
+    }
     default:
-      Serial.println("input to change mode invalid");
+    {
+      Serial.printf("Invalid command input\n");
+      break;
+    }
     }
   }
   // flush buffer
