@@ -11,7 +11,7 @@ fs = 100;
 Ts = 1/fs;
 
 % voltage input dead zone for system [upper, lower]
-dead_zone = [0.0, -0.0];
+dead_zone = [0.1, -0.1];
 
 % voltage input limit [upper, lower]
 input_limit = [10, -10];
@@ -170,8 +170,8 @@ gamma = 0.4;
 
 %% Sliding Mode with integral action
 
-Cs_integral_action = [-1 -1.2 5 1 0.0001];
-gamma_integral_action = 0.4;
+Cs_integral_action = [-1.1, -1.7, 2.92, 1.1, -0.00125];
+gamma_integral_action = 0.8;
 
 %% Run Simulation
 % sim('motor_beam_model_sim.slx');
