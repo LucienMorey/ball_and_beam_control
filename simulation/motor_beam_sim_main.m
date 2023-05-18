@@ -170,8 +170,8 @@ gamma = 0.4;
 
 %% Sliding Mode with integral action
 
-Cs_integral_action = [-1.1, -1.7, 2.92, 1.1, -0.00125];
-gamma_integral_action = 0.8;
+Cs_integral_action = [-1.3 -1.5 4 1 -0.0019];
+gamma_integral_action = 0.7;
 
 %% Run Simulation
-% sim('motor_beam_model_sim.slx');
+sim('motor_beam_model_sim.slx');
