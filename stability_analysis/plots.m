@@ -1,5 +1,5 @@
 %% 
-controller = 2; % 1: SFC
+controller = 3; % 1: SFC
                 % 2: LQR
                 % 3: SMC
 
