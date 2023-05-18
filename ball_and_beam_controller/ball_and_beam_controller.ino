@@ -467,4 +467,10 @@ void loop()
   }
 
   last_controller_state = current_controller_state;
+
+  // map meters to volts: -10 -> 10 map to -0.4 -> 0.4
+  // convert volts to dac:
+  float ball_pos_dac = map(x_hat_k(0,0),-0.4,0.4,-10,10);
+  analogWrite(OUT3, driveVoltageToDAC(ball_pos_dac));
+
 }
