@@ -147,7 +147,7 @@ const uint32_t lqr_max_iterations = 600;
 Eigen::Matrix<double, control_dimension, state_dimension_integral> K_LQR_INTEGRAL_SFC;
 
 // Sliding Mode params
-const double gamma_sm = 0.8;
+const double gamma_sm = 0.7;
 const double k = 1.0;
 Eigen::Matrix<double, control_dimension, state_dimension> Cs;
 Eigen::Matrix<double, control_dimension, state_dimension_integral> Cs_integral;
@@ -226,7 +226,7 @@ void setup()
   K_LQR_INTEGRAL_SFC << -26.0651, -24.6003, 49.8412, 2.3601, -0.0172;
 
   Cs << -1, -1.5, 5, 1;
-  Cs_integral << -1.1, -1.7, 2.92, 1.1, -0.00125;
+  Cs_integral << -1.3, -1.5, 4, 1, -0.0019;
 
   x_hat_k = x_hat_0;
   u_ref << 0.0;
@@ -368,7 +368,7 @@ void Controller(void)
 
   q_k = q_k + y_hat_k - y_ref;
 
-  std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
+  // std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
 
   // Board Outputs
   analogWrite(OUT4, out4);
