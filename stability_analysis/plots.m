@@ -15,19 +15,19 @@ xlabel('Ball Position (m)','fontsize',16,'interpreter','latex')
 
 if(controller == 1)
     title("SFC with integral action",'fontsize',16,'interpreter','latex')
-    Files=dir('SFC_data/*');
+    Files=dir('SFC_data/');
 elseif(controller == 2)
     title("LQR with integral action",'fontsize',16,'interpreter','latex')
-    Files=dir('LQR_data/*');
+    Files=dir('LQR_data/');
 elseif(controller == 3)
     title("Sliding Mode Control",'fontsize',16,'interpreter','latex')
-    Files=dir('SMC_data/*');
+    Files=dir('SMC_data/');
 end
 
-for k=1:length(Files)
-   FileName = Files(k).name;
+for k=1:(size(Files,1)-2)
+    FileName = Files(2+k,:).name;
 
-    data = readtable('LQR_data/scope_37.csv');
+    data = readtable(horzcat(Files(k,:).folder,'/',FileName));
     data = data(4:end,:);
     
     ballPos = data.Var3;
@@ -35,9 +35,9 @@ for k=1:length(Files)
 
     % do conversion to real units
     
-    ballPos = (16.838518 .* ballPos + 2.763498)/100;
+%     ballPos = (16.838518 .* ballPos + 2.763498)/100;
     ballPos = ballPos - pos_ref;
-    beamAngle = 1.040051 .* beamAngle + 0.696110;
+%     beamAngle = 1.040051 .* beamAngle + 0.696110;
     
     % some filtering
     
