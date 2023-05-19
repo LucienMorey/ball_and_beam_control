@@ -245,8 +245,6 @@ void setup()
 
   // Initialize I/O pins to measure execution time
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(A3, OUTPUT);
-  digitalWrite(A3, LOW);
 
   // Initialize Input Pins
   pinMode(IN1, INPUT);
@@ -279,11 +277,6 @@ void setup()
 //___________________________________________________________________________
 void Controller(void)
 {
-
-  // The code inside this section will be run at every Ts
-  // Start measuring execution time
-  digitalWrite(A3, HIGH);
-  analogWrite(OUT3, 0);
 
   // Board Inputs
   in3 = analogRead(IN3); // -12v -> 12v
@@ -372,9 +365,6 @@ void Controller(void)
 
   // Board Outputs
   analogWrite(OUT4, out4);
-
-  // Stop measuring calculation time
-  analogWrite(OUT3, 4000);
 }
 
 //___________________________________________________________________________
@@ -467,4 +457,10 @@ void loop()
   }
 
   last_controller_state = current_controller_state;
+
+  // map meters to volts: -10 -> 10 map to -0.4 -> 0.4
+  // convert volts to dac:
+  float ball_pos_dac = map(x_hat_k(0,0)-x_ref(0,0),-0.4,0.4,-10,10);
+  analogWrite(OUT3, driveVoltageToDAC(ball_pos_dac));
+
 }
