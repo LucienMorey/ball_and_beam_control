@@ -99,8 +99,8 @@ disp(' ')
 
 %modify these to be less than the unit circle if we want to use the
 %dsicrete time system
-overshoot = 0.000005;
-settling_time = 2.5;
+overshoot = 0.05;
+settling_time = 2.7;
 
 [p1, p2] = second_order_poles(overshoot, settling_time);
 
@@ -149,7 +149,7 @@ B_augmented = [B;
                0];
 
 %LQR
-Q_lqr = diag([20, 8, 10, 1, 0.00001]);
+Q_lqr = diag([30, 10, 10, 4, 0.0001]);
 R_lqr = 0.01;
 [Kf_and_Ki,S,P] =dlqr(A_augmented, B_augmented, Q_lqr, R_lqr);
 
@@ -174,4 +174,4 @@ Cs_integral_action = [-1.3 -1.5 4 1 -0.0019];
 gamma_integral_action = 0.7;
 
 %% Run Simulation
-sim('motor_beam_model_sim.slx');
+% sim('motor_beam_model_sim.slx');
