@@ -190,7 +190,7 @@ void setup()
       0.0, 0.0, 1.0, 0.0;
 
   K_SFC << -2.2001, -2.2845, 9.2207, -2.6050;
-  K_SFC_integral << -7.1867, -8.2904, 22.3119, -1.8339, -0.0090;
+  K_SFC_integral <<  -9.8498,   -7.2996,   19.5355,   -1.9780,   -0.0132;
 
   L << 0.4418, 0.0081,
       1.9321, 0.2999,
@@ -223,7 +223,7 @@ void setup()
   // This controller was required to avoid long computation time when using the recursive lqr class. These precumputed gains were calculated from:
   // lqr_Q_integral = diag(20, 8, 10, 1, 0.00001)
   // lqr_R_integral = 0.01
-  K_LQR_INTEGRAL_SFC << -26.0651, -24.6003, 49.8412, 2.3601, -0.0172;
+  K_LQR_INTEGRAL_SFC << -20.7809,  -18.9067,   43.9767,    2.9277,   -0.0321;
 
   Cs << -1, -1.5, 5, 1;
   Cs_integral << -1.3, -1.5, 4, 1, -0.0019;
@@ -361,7 +361,7 @@ void Controller(void)
 
   q_k = q_k + y_hat_k - y_ref;
 
-  // std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
+  std::cout << "u_k " << u_k.format(CleanFmt) << " pos & angle " << z_k.transpose().format(CleanFmt) << " x_hat " << x_hat_k.transpose().format(CleanFmt) << std::endl;
 
   // Board Outputs
   analogWrite(OUT4, out4);
@@ -429,6 +429,7 @@ void loop()
       break;
     }
     }
+    q_k(0,0) = 0.0;
   }
   // flush buffer
   Serial.flush();
